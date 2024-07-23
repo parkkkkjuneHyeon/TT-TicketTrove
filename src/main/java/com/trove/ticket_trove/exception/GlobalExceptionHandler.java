@@ -1,5 +1,6 @@
 package com.trove.ticket_trove.exception;
 
+import com.trove.ticket_trove.exception.concert.ConcertExistsException;
 import com.trove.ticket_trove.exception.dto.ClientErrorResponse;
 import com.trove.ticket_trove.exception.member.MemberExistsException;
 import com.trove.ticket_trove.exception.member.MemberNotFoundException;
@@ -30,6 +31,15 @@ public class GlobalExceptionHandler {
                 e.getHttpStatus()
         );
     }
+    @ExceptionHandler(ConcertExistsException.class)
+    public ResponseEntity<ClientErrorResponse> concertExistsException(ConcertExistsException e) {
+        return new ResponseEntity<>(
+                new ClientErrorResponse(e.getHttpStatus(),
+                        e.getMessage()),
+                e.getHttpStatus()
+        );
+    }
+
     @ExceptionHandler(ClientErrorException.class)
     public ResponseEntity<ClientErrorResponse> clientErrorException(
             ClientErrorException e) {
