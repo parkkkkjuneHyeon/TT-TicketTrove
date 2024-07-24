@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 public class MemberExistsException extends ClientErrorException {
 
     public MemberExistsException() {
-        super(HttpStatus.CONFLICT, "Member already exists");
+        super(HttpStatus.BAD_REQUEST, "Member already exists");
     }
     public MemberExistsException(String email) {
         super(HttpStatus.BAD_REQUEST, "email : " + email + " already exists");
