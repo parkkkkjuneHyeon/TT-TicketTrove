@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "concert",
         uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"concert_name", "performer", "deleted_at"})
+        @UniqueConstraint(columnNames = {"concert_name", "performer","show_start", "deleted_at"})
 })
 @SQLDelete(sql = "UPDATE concert " +
         "SET deleted_at = CURRENT_TIMESTAMP " +
