@@ -38,10 +38,10 @@ public class ConcertController {
     }
 
     //콘서트 단건 조회
-    @GetMapping("/{id}")
+    @GetMapping("/{concertId}")
     public ResponseEntity<ConcertInfoResponse> getConcert(
-            @PathVariable Long id) {
-        var concertResponse = concertService.searchConcert(id);
+            @PathVariable Long concertId) {
+        var concertResponse = concertService.searchConcert(concertId);
         return ResponseEntity.ok(concertResponse);
     }
 
@@ -57,11 +57,11 @@ public class ConcertController {
     }
 
     //콘서트 삭제
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{concertId}")
     public ResponseEntity<HttpStatus> deleteConcert(
-            @PathVariable Long id
+            @PathVariable Long concertId
     ) {
-        concertService.deleteConcert(id);
+        concertService.deleteConcert(concertId);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
