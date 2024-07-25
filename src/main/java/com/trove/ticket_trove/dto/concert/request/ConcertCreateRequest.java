@@ -12,5 +12,16 @@ public record ConcertCreateRequest(
         @NotBlank
         LocalDateTime showStart,
         @NotBlank
-        LocalDateTime showEnd) {
+        LocalDateTime showEnd,
+        @NotBlank
+        GradeType[] gradeType
+        ) {
+        public static record GradeType(
+                @NotBlank
+                String grade,
+                @NotBlank
+                Integer price,
+                @NotBlank
+                Integer totalSeat) {}
 }
+

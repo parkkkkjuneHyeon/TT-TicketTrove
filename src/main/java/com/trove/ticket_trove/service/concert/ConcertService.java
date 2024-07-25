@@ -7,33 +7,48 @@ import com.trove.ticket_trove.dto.concert.response.ConcertUpdateResponse;
 import com.trove.ticket_trove.exception.concert.ConcertExistsException;
 import com.trove.ticket_trove.exception.concert.ConcertNotFoundException;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
+import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
+import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ConcertService {
 
     private final ConcertRepository concertRepository;
+    private final SeatGradeRepository seatGradeRepository;
 
-    public ConcertService(ConcertRepository concertRepository) {
+    public ConcertService(
+            ConcertRepository concertRepository,
+            SeatGradeRepository seatGradeRepository) {
+
         this.concertRepository = concertRepository;
+        this.seatGradeRepository = seatGradeRepository;
     }
 
     //콘서트 생성
     public void addConcert(ConcertCreateRequest request) {
         validateConcert(request.concertName(), request.performer());
-
         var concertEntity = ConcertEntity.builder()
                 .concertName(request.concertName())
                 .performer(request.performer())
                 .showStart(request.showStart())
                 .showEnd(request.showEnd())
                 .build();
+        var gradeType = request.gradeType();
 
         concertRepository.save(concertEntity);
+
+        //공연장 등급 저장
+        Arrays.stream(gradeType).map(sg ->
+                SeatGradeEntity.from(
+                        concertEntity, sg.grade().toUpperCase(),
+                        sg.price(), sg.totalSeat())
+        ).forEach(seatGradeRepository::save);
     }
 
     //콘서트 정보 수정
@@ -69,7 +84,9 @@ public class ConcertService {
 
     //콘서트 정보 삭제
     public void deleteConcert(Long id) {
-        concertRepository.deleteById(id);
+        var concertEntity = getConcertEntity(id);
+        seatGradeRepository.deleteAllByConcertId(concertEntity);
+        concertRepository.delete(concertEntity);
     }
 
     private ConcertEntity getConcertEntity(Long id) {

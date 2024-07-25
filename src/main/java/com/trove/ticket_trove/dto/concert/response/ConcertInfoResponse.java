@@ -5,7 +5,7 @@ import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import java.time.LocalDateTime;
 
 public record ConcertInfoResponse(
-        Long id,
+        Long concertId,
         String concertName,
         String performer,
         LocalDateTime showStart,
