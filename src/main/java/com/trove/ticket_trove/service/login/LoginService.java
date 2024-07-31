@@ -9,6 +9,7 @@ import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LoginService {
@@ -18,7 +19,9 @@ public class LoginService {
     public LoginService(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
+
     //회원가입
+    @Transactional
     public MemberEntity signup(MemberSignupRequest request) {
         validateExistsEmail(request.email());
         var memberEntity = MemberEntity.from(

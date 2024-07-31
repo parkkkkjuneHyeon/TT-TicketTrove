@@ -11,6 +11,7 @@ import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Arrays;
@@ -30,6 +31,7 @@ public class ConcertService {
         this.seatGradeRepository = seatGradeRepository;
     }
 
+    @Transactional
     //콘서트 생성
     public void addConcert(ConcertCreateRequest request) {
         validateConcert(request.concertName(), request.performer());
@@ -51,6 +53,7 @@ public class ConcertService {
         ).forEach(seatGradeRepository::save);
     }
 
+    @Transactional
     //콘서트 정보 수정
     public ConcertUpdateResponse updateConcert(ConcertUpdateRequest request) {
         var concertEntity = getConcertEntity(request.concertId());
@@ -82,6 +85,7 @@ public class ConcertService {
         return ConcertInfoResponse.from(getConcertEntity(id));
     }
 
+    @Transactional
     //콘서트 정보 삭제
     public void deleteConcert(Long id) {
         var concertEntity = getConcertEntity(id);
