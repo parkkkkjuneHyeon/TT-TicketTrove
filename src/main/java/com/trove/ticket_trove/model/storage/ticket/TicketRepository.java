@@ -1,6 +1,5 @@
 package com.trove.ticket_trove.model.storage.ticket;
 
-import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
