@@ -33,6 +33,7 @@ public class ConcertEntity {
     private String performer;
     private LocalDateTime showStart;
     private LocalDateTime showEnd;
+    private LocalDateTime ticketingTime;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
