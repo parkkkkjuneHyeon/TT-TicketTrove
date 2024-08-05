@@ -1,8 +1,10 @@
 package com.trove.ticket_trove.dto.concert.request;
 
+import com.trove.ticket_trove.dto.seatGrade.request.SeatGradeCreateRequest;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ConcertCreateRequest(
         @NotBlank
@@ -14,14 +16,10 @@ public record ConcertCreateRequest(
         @NotBlank
         LocalDateTime showEnd,
         @NotBlank
-        GradeType[] gradeType
+        LocalDateTime ticketingTime,
+        @NotBlank
+        List<SeatGradeCreateRequest> gradeType
         ) {
-        public static record GradeType(
-                @NotBlank
-                String grade,
-                @NotBlank
-                Integer price,
-                @NotBlank
-                Integer totalSeat) {}
+
 }
 

@@ -9,15 +9,18 @@ public record ConcertInfoResponse(
         String concertName,
         String performer,
         LocalDateTime showStart,
-        LocalDateTime showEnd
+        LocalDateTime showEnd,
+        LocalDateTime ticketingTime
 ) {
 
-    public static ConcertInfoResponse from(ConcertEntity concert) {
+    public static ConcertInfoResponse from(
+            ConcertEntity concert) {
         return new ConcertInfoResponse(
                 concert.getId(),
                 concert.getConcertName(),
                 concert.getPerformer(),
                 concert.getShowStart(),
-                concert.getShowEnd());
+                concert.getShowEnd(),
+                concert.getTicketingTime());
     }
 }
