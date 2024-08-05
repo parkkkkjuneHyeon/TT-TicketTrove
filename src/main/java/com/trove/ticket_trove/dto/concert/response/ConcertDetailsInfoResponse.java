@@ -13,7 +13,7 @@ public record ConcertDetailsInfoResponse(
         LocalDateTime showStart,
         LocalDateTime showEnd,
         LocalDateTime ticketingTime,
-        List<SeatGradeInfoResponse> seatGrades
+        List<SeatGradeInfoResponse> gradeTypes
 ) {
 
     public static ConcertDetailsInfoResponse from(

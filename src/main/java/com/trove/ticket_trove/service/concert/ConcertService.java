@@ -46,7 +46,7 @@ public class ConcertService {
                 .showEnd(request.showEnd())
                 .ticketingTime(request.ticketingTime())
                 .build();
-        var seatGradeCreateRequests = request.gradeType();
+        var seatGradeCreateRequests = request.gradeTypes();
 
         //공연장 저장
         concertRepository.save(concertEntity);
