@@ -2,6 +2,7 @@ package com.trove.ticket_trove.controller.concert;
 
 import com.trove.ticket_trove.dto.concert.request.ConcertCreateRequest;
 import com.trove.ticket_trove.dto.concert.request.ConcertUpdateRequest;
+import com.trove.ticket_trove.dto.concert.response.ConcertDetailsInfoResponse;
 import com.trove.ticket_trove.dto.concert.response.ConcertInfoResponse;
 import com.trove.ticket_trove.dto.concert.response.ConcertUpdateResponse;
 import com.trove.ticket_trove.service.concert.ConcertService;
@@ -39,10 +40,10 @@ public class ConcertController {
 
     //콘서트 단건 조회
     @GetMapping("/{concertId}")
-    public ResponseEntity<ConcertInfoResponse> getConcert(
+    public ResponseEntity<ConcertDetailsInfoResponse> getConcert(
             @PathVariable Long concertId) {
-        var concertResponse = concertService.searchConcert(concertId);
-        return ResponseEntity.ok(concertResponse);
+        var concertDetailsResponse = concertService.searchConcert(concertId);
+        return ResponseEntity.ok(concertDetailsResponse);
     }
 
     //콘서트정보 수정
