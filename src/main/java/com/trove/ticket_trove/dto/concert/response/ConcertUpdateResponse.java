@@ -18,7 +18,7 @@ public record ConcertUpdateResponse(
 
     public static ConcertUpdateResponse from(
             ConcertEntity concertEntity,
-            List<SeatGradeUpdateResponse> gradeTypes) {
+            List<SeatGradeUpdateResponse> seatGradeUpdateResponse) {
         return new ConcertUpdateResponse(
                 concertEntity.getId(),
                 concertEntity.getConcertName(),
@@ -26,6 +26,6 @@ public record ConcertUpdateResponse(
                 concertEntity.getShowStart(),
                 concertEntity.getShowEnd(),
                 concertEntity.getTicketingTime(),
-                gradeTypes);
+                seatGradeUpdateResponse);
     }
 }

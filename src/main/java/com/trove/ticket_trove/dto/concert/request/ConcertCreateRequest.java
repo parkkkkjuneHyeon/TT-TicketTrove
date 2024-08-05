@@ -18,7 +18,7 @@ public record ConcertCreateRequest(
         @NotBlank
         LocalDateTime ticketingTime,
         @NotBlank
-        List<SeatGradeCreateRequest> gradeType
+        List<SeatGradeCreateRequest> gradeTypes
         ) {
 
 }
