@@ -21,6 +21,8 @@ import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
 import com.trove.ticket_trove.model.storage.ticket.TicketRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -69,20 +71,28 @@ public class ReservationService {
     }
 
     //유저 티켓 전체 조회 (유저)
-    public List<TicketInfoResponse> searchTickets(String email) { //시큐리티 적용시 수정할 예정
+    public List<TicketInfoResponse> searchTickets(
+            String email, Integer page, Integer size) { //시큐리티 적용시 수정할 예정
+
         var memberEntity = getMemberEntity(email);
+        Pageable pageable = PageRequest.of(page, size);
+
         return ticketRepository
-                .findByMemberEmail(memberEntity)
+                .findByMemberEmailOrderByCreatedAtAsc(memberEntity, pageable)
                 .stream()
                 .map(TicketInfoResponse::from)
                 .toList();
     }
 
     //공연장 티켓 전체 조회(관리자)
-    public List<TicketInfoAdminResponse> searchConcertTickets(Long concertId) {
+    public List<TicketInfoAdminResponse> searchConcertTickets(
+            Long concertId, Integer page, Integer size) {
+
+        Pageable pageable = PageRequest.of(page, size);
         var concertEntity = getConcertEntity(concertId);
+
         return ticketRepository
-                .findByConcertId(concertEntity)
+                .findByConcertIdOrderByCreatedAtAsc(concertEntity, pageable)
                 .stream().map(TicketInfoAdminResponse::from)
                 .toList();
     }

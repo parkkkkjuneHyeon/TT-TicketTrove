@@ -35,10 +35,12 @@ public class ReservationController {
     @PostMapping("/member-tickets")
     public ResponseEntity<List<TicketInfoResponse>> searchMemberTickets(
             @RequestBody
-            TicketMemberEmailRequest request
+            TicketMemberEmailRequest request,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "3") Integer size
     ) {
         var memberTicketsResponse =
-                reservationService.searchTickets(request.email());
+                reservationService.searchTickets(request.email(), page, size);
         return ResponseEntity.ok(memberTicketsResponse);
     }
     //유저 티켓 단건 조회
@@ -53,9 +55,12 @@ public class ReservationController {
     //공연장 티켓 전체 조회
     @GetMapping("/concert-tickets/{concertId}")
     public ResponseEntity<List<TicketInfoAdminResponse>> searchConcertTickets(
-            @PathVariable Long concertId
+            @PathVariable Long concertId,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "3") Integer size
     ) {
-        var concertTicketsResponse = reservationService.searchConcertTickets(concertId);
+        var concertTicketsResponse = reservationService
+                .searchConcertTickets(concertId, page, size);
         return ResponseEntity.ok(concertTicketsResponse);
     }
     //티켓 취소
