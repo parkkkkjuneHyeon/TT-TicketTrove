@@ -4,6 +4,7 @@ import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,7 +28,7 @@ public interface TicketRepository extends JpaRepository<TicketEntity, Long> {
             @Param("memberEmail") MemberEntity memberEmail,
             @Param("seatNumber") Integer seatNumber);
 
-    List<TicketEntity> findByMemberEmail(MemberEntity memberEntity);
+    List<TicketEntity> findByMemberEmailOrderByCreatedAtAsc(MemberEntity memberEntity, Pageable pageable);
 
-    List<TicketEntity> findByConcertId(ConcertEntity concertId);
+    List<TicketEntity> findByConcertIdOrderByCreatedAtAsc(ConcertEntity concertId, Pageable pageable);
 }

@@ -15,6 +15,8 @@ import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -94,9 +96,10 @@ public class ConcertService {
     }
 
     //콘서트 전체 조회
-    public List<ConcertInfoResponse> searchConcerts() {
+    public List<ConcertInfoResponse> searchConcerts(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
 
-        return concertRepository.findAll().stream()
+        return concertRepository.findAllByOrderByShowStartAsc(pageable).stream()
                 .map(ConcertInfoResponse::from).toList();
     }
 
