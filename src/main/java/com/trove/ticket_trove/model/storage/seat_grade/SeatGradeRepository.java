@@ -16,5 +16,5 @@ public interface SeatGradeRepository extends JpaRepository<SeatGradeEntity, Long
 
     List<SeatGradeEntity> findByConcertId(ConcertEntity concertEntity);
 
-    Optional<SeatGradeEntity> findByConcertIdAndGradeAndPrice(ConcertEntity concertEntity, String upperCase, Integer price);
+    Optional<SeatGradeEntity> findByConcertIdAndGradeAndPrice(ConcertEntity concertEntity, String grade, Integer price);
 }

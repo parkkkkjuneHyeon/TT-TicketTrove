@@ -6,6 +6,7 @@ import com.trove.ticket_trove.dto.ticket.request.TicketSearchRequest;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoAdminResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
+import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
 import com.trove.ticket_trove.exception.concert.ConcertNotFoundException;
 import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.exception.seatgrade.SeatGradeNotFoundException;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReservationService {
@@ -45,6 +47,7 @@ public class ReservationService {
         this.memberRepository = memberRepository;
         this.seatGradeRepository = seatGradeRepository;
     }
+
 
     //티켓 예매
     @Transactional
@@ -124,6 +127,21 @@ public class ReservationService {
                 ticket.getMemberEmail(), ticket.getSeatNumber());
 
         ticketRepository.delete(ticketEntity);
+    }
+
+    //좌석 체크
+    public TicketSeatCheckResponse seatCheck(
+            Long concertId, String grade, Integer seatNumber) {
+        var concertEntity = getConcertEntity(concertId);
+        var seatGradeEntity = getSeatGradeEntity(concertEntity, grade);
+        //유효성 검사
+        validateSeat(seatGradeEntity, seatNumber);
+        //좌석이 있는지 티캣을 통해 확인
+        return ticketRepository.findByConcertIdAndSeatGradeAndSeatNumber(
+                        concertEntity, seatGradeEntity, seatNumber)
+                .map(ticket -> new TicketSeatCheckResponse(false))
+                .or(() -> Optional.of(new TicketSeatCheckResponse(true)))
+                .get();
     }
 
     //등급의 좌석수보다 높으면 예외
