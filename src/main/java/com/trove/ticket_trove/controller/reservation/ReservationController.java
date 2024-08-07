@@ -7,6 +7,7 @@ import com.trove.ticket_trove.dto.ticket.request.TicketSearchRequest;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoAdminResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
+import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
 import com.trove.ticket_trove.service.reservation.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,18 @@ public class ReservationController {
         var ticketResponse = reservationService.reserve(request);
         return ResponseEntity.ok(ticketResponse);
     }
+    //좌석 유무 확인
+    @GetMapping("/check-seat/{concertId}")
+    public ResponseEntity<TicketSeatCheckResponse> getSeatInfo(
+            @PathVariable Long concertId,
+            @RequestParam String grade,
+            @RequestParam Integer seatNumber
+    ){
+        var seatCheckResponse = reservationService
+                .seatCheck(concertId, grade.toUpperCase(), seatNumber);
+        return ResponseEntity.ok(seatCheckResponse);
+    }
+
     //유저 티켓 전체 조회
     @PostMapping("/member-tickets")
     public ResponseEntity<List<TicketInfoResponse>> searchMemberTickets(
