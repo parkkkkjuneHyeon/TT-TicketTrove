@@ -85,7 +85,7 @@ public class ConcertService {
         if (!ObjectUtils.isEmpty(request.gradeTypes())) {
             seatGrades = updateSeatGrade(concertEntity, request.gradeTypes());
         } else {
-            seatGrades = seatGradeRepository.findByConcertId(concertEntity)
+            seatGrades = seatGradeRepository.findByConcertIdOrderByPriceDesc(concertEntity)
                     .stream()
                     .map(SeatGradeUpdateResponse::from)
                     .toList();
@@ -107,7 +107,7 @@ public class ConcertService {
     public ConcertDetailsInfoResponse searchConcert(Long id) {
         var concertEntity = getConcertEntity(id);
         var seatGrades = seatGradeRepository
-                .findByConcertId(concertEntity)
+                .findByConcertIdOrderByPriceDesc(concertEntity)
                 .stream().map(SeatGradeInfoResponse::from)
                 .toList();
 

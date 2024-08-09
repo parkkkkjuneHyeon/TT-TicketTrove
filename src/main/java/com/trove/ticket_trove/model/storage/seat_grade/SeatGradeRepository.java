@@ -14,7 +14,7 @@ public interface SeatGradeRepository extends JpaRepository<SeatGradeEntity, Long
 
     void deleteAllByConcertId(ConcertEntity concertEntity);
 
-    List<SeatGradeEntity> findByConcertId(ConcertEntity concertEntity);
+    List<SeatGradeEntity> findByConcertIdOrderByPriceDesc(ConcertEntity concertEntity);
 
     Optional<SeatGradeEntity> findByConcertIdAndGradeAndPrice(ConcertEntity concertEntity, String grade, Integer price);
 }

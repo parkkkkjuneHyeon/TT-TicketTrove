@@ -8,7 +8,5 @@ public record TicketCreateRequest(
         @NotBlank
         String seatGrade,
         @NotBlank
-        Integer seatNumber,
-        @NotBlank
-        String email) {
+        Integer seatNumber) {
 }
