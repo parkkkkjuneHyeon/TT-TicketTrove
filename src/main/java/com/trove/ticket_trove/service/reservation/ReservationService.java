@@ -8,7 +8,6 @@ import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
 import com.trove.ticket_trove.exception.concert.ConcertNotFoundException;
-import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.exception.seatgrade.SeatGradeNotFoundException;
 import com.trove.ticket_trove.exception.seatgrade.SeatNumberValidationException;
 import com.trove.ticket_trove.exception.ticket.TicketExistsException;
@@ -18,7 +17,6 @@ import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
-import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
 import com.trove.ticket_trove.model.storage.ticket.TicketRepository;
 import jakarta.transaction.Transactional;
@@ -33,18 +31,15 @@ import java.util.Optional;
 public class ReservationService {
     private final TicketRepository ticketRepository;
     private final ConcertRepository concertRepository;
-    private final MemberRepository memberRepository;
     private final SeatGradeRepository seatGradeRepository;
 
     public ReservationService(
             TicketRepository ticketRepository,
             ConcertRepository concertRepository,
-            MemberRepository memberRepository,
             SeatGradeRepository seatGradeRepository) {
 
         this.ticketRepository = ticketRepository;
         this.concertRepository = concertRepository;
-        this.memberRepository = memberRepository;
         this.seatGradeRepository = seatGradeRepository;
     }
 
@@ -52,11 +47,11 @@ public class ReservationService {
     //티켓 예매
     @Transactional
     public TicketReservationResponse reserve(
-            TicketCreateRequest request
+            MemberEntity memberEntity, TicketCreateRequest request
     ) {
 
         var ticket = createTicketEntity(
-                request.concertId(), request.email(),
+                request.concertId(), memberEntity,
                 request.seatGrade(), request.seatNumber());
 
         //유효성 검사
@@ -75,9 +70,8 @@ public class ReservationService {
 
     //유저 티켓 전체 조회 (유저)
     public List<TicketInfoResponse> searchTickets(
-            String email, Integer page, Integer size) { //시큐리티 적용시 수정할 예정
+            MemberEntity memberEntity, Integer page, Integer size) { //시큐리티 적용시 수정할 예정
 
-        var memberEntity = getMemberEntity(email);
         Pageable pageable = PageRequest.of(page, size);
 
         return ticketRepository
@@ -101,10 +95,10 @@ public class ReservationService {
     }
 
     //티켓 단건 조회
-    public TicketInfoResponse searchTicket(TicketSearchRequest request) {
+    public TicketInfoResponse searchTicket(MemberEntity memberEntity, TicketSearchRequest request) {
 
         var ticket = createTicketEntity(
-                request.concertId(), request.email(),
+                request.concertId(), memberEntity,
                 request.seatGrade(), request.seatNumber());
 
         var ticketEntity = getTicketEntity(
@@ -116,10 +110,10 @@ public class ReservationService {
 
     //티켓 예매 취소
     @Transactional
-    public void cancelTicket(TicketDeleteRequest request) {
+    public void cancelTicket(MemberEntity memberEntity, TicketDeleteRequest request) {
 
         var ticket = createTicketEntity(
-                request.concertId(), request.email(),
+                request.concertId(), memberEntity,
                 request.seatGrade(), request.seatNumber());
 
         var ticketEntity = getTicketEntity(
@@ -169,13 +163,12 @@ public class ReservationService {
 
     //Ticket 객체를 생성하는 메소드
     private TicketEntity createTicketEntity(
-            Long concertId, String email,
+            Long concertId, MemberEntity memberEntity,
             String grade, Integer seatNumber) {
 
         var concertEntity = getConcertEntity(concertId);
         var seatGradeEntity =
                 getSeatGradeEntity(concertEntity, grade.toUpperCase());
-        var memberEntity = getMemberEntity(email);
 
         return TicketEntity.from(
                 memberEntity, concertEntity,
@@ -207,10 +200,5 @@ public class ReservationService {
                 .findByConcertIdAndGrade(
                         concertEntity, grade.toUpperCase())
                 .orElseThrow(SeatGradeNotFoundException::new);
-    }
-
-    private MemberEntity getMemberEntity(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(MemberNotFoundException::new);
     }
 }
