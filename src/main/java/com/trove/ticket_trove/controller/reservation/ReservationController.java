@@ -80,8 +80,8 @@ public class ReservationController {
     @GetMapping("/concert-tickets/{concertId}")
     public ResponseEntity<List<TicketInfoAdminResponse>> searchConcertTickets(
             @PathVariable Long concertId,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "3") Integer size
+            @RequestParam(defaultValue = "0", required = false) Integer page,
+            @RequestParam(defaultValue = "3", required = false) Integer size
     ) {
         var concertTicketsResponse = reservationService
                 .searchConcertTickets(concertId, page, size);

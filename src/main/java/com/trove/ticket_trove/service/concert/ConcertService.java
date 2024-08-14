@@ -14,9 +14,12 @@ import com.trove.ticket_trove.exception.seatgrade.SeatGradeNotFoundException;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
+import com.trove.ticket_trove.model.storage.concert.RedisHashConcertRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -24,18 +27,14 @@ import org.springframework.util.ObjectUtils;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ConcertService {
 
     private final ConcertRepository concertRepository;
+    private final RedisHashConcertRepository redisHashConcertRepository;
     private final SeatGradeRepository seatGradeRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public ConcertService(
-            ConcertRepository concertRepository,
-            SeatGradeRepository seatGradeRepository) {
-
-        this.concertRepository = concertRepository;
-        this.seatGradeRepository = seatGradeRepository;
-    }
 
     //콘서트 생성
     @Transactional

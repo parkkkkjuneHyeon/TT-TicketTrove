@@ -32,6 +32,8 @@ public interface TicketRepository extends JpaRepository<TicketEntity, Long> {
 
     List<TicketEntity> findByConcertIdOrderByCreatedAtAsc(ConcertEntity concertId, Pageable pageable);
 
+    List<TicketEntity> findByConcertIdOrderByCreatedAtAsc(ConcertEntity concertId);
+
     Optional<TicketEntity> findByConcertIdAndSeatGradeAndSeatNumber(
             ConcertEntity concertEntity,
             SeatGradeEntity seatGradeEntity,

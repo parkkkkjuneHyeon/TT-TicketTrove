@@ -2,7 +2,6 @@ package com.trove.ticket_trove.model.entity.jwt;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -21,7 +20,6 @@ public class RefreshTokenEntity {
     @Column(name = "token" , unique = true, nullable = false)
     private String refreshToken;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     private Long expirationTime;

@@ -8,8 +8,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -58,10 +56,8 @@ public class TicketEntity {
     @Column(name = "seat_number")
     private Integer seatNumber;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
@@ -90,4 +86,17 @@ public class TicketEntity {
                 .seatNumber(seatNumber)
                 .build();
     }
+
+    public static TicketEntity to(RedisHashTicket redisHashTicket) {
+        return TicketEntity.builder()
+                .id(redisHashTicket.getId())
+                .memberEmail(redisHashTicket.getMemberEmail())
+                .concertId(redisHashTicket.getConcertId())
+                .seatGrade(redisHashTicket.getSeatGrade())
+                .seatNumber(redisHashTicket.getSeatNumber())
+                .createdAt(redisHashTicket.getCreatedAt())
+                .updatedAt(redisHashTicket.getUpdatedAt())
+                .build();
+    }
 }
+

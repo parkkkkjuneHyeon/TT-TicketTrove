@@ -36,4 +36,14 @@ public record TicketInfoAdminResponse(
                 ticketEntity.getCreatedAt(),
                 ticketEntity.getDeletedAt());
     }
+
+    public static TicketInfoAdminResponse from(
+            Object object
+    ) {
+        if (object != null) {
+            var ticketEntity = (TicketEntity) object;
+            return from(ticketEntity);
+        }
+        return null;
+    }
 }

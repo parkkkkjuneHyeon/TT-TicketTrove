@@ -13,36 +13,40 @@ import com.trove.ticket_trove.exception.seatgrade.SeatNumberValidationException;
 import com.trove.ticket_trove.exception.ticket.TicketExistsException;
 import com.trove.ticket_trove.exception.ticket.TicketNotFoundException;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
+import com.trove.ticket_trove.model.entity.concert.RedisHashConcert;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
+import com.trove.ticket_trove.model.entity.seat_grade.RedisHashSeatGrade;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
+import com.trove.ticket_trove.model.entity.ticket.RedisHashTicket;
 import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
 import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
+import com.trove.ticket_trove.model.storage.concert.RedisHashConcertRepository;
+import com.trove.ticket_trove.model.storage.seat_grade.RedisHashSeatGradeRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
+import com.trove.ticket_trove.model.storage.ticket.RedisHashTicketRepository;
 import com.trove.ticket_trove.model.storage.ticket.TicketRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ReservationService {
     private final TicketRepository ticketRepository;
     private final ConcertRepository concertRepository;
     private final SeatGradeRepository seatGradeRepository;
-
-    public ReservationService(
-            TicketRepository ticketRepository,
-            ConcertRepository concertRepository,
-            SeatGradeRepository seatGradeRepository) {
-
-        this.ticketRepository = ticketRepository;
-        this.concertRepository = concertRepository;
-        this.seatGradeRepository = seatGradeRepository;
-    }
-
+    private final RedisHashTicketRepository redisHashTicketRepository;
+    private final RedisHashConcertRepository redisHashConcertRepository;
+    private final RedisTemplate<String, TicketEntity> ticketRedisTemplate;
+    private final RedisTemplate redisTemplate;
+    private final RedisHashSeatGradeRepository redisHashSeatGradeRepository;
 
     //티켓 예매
     @Transactional
@@ -64,6 +68,12 @@ public class ReservationService {
                 ticket.getMemberEmail(),
                 ticket.getSeatNumber());
 
+        // Ticket:key -> 티켓 키 값을 따라 ticket저장
+        redisHashTicketRepository.save(RedisHashTicket.from(ticket));
+        // Ticket:concertId -> 콘서트장 좌석조회용도, 콘서트 아이디값을 따라 ticket저장
+        ticketRedisTemplate.opsForHash().put(
+                "ConcertId:%d".formatted(ticket.getConcertId().getId()),
+                RedisHashTicket.from(ticket).getKey(), ticket);
         return TicketReservationResponse
                 .from(ticketRepository.save(ticket));
     }
@@ -73,6 +83,7 @@ public class ReservationService {
             MemberEntity memberEntity, Integer page, Integer size) { //시큐리티 적용시 수정할 예정
 
         Pageable pageable = PageRequest.of(page, size);
+
 
         return ticketRepository
                 .findByMemberEmailOrderByCreatedAtAsc(memberEntity, pageable)
@@ -88,9 +99,19 @@ public class ReservationService {
         Pageable pageable = PageRequest.of(page, size);
         var concertEntity = getConcertEntity(concertId);
 
-        return ticketRepository
-                .findByConcertIdOrderByCreatedAtAsc(concertEntity, pageable)
-                .stream().map(TicketInfoAdminResponse::from)
+        String key = "ConcertId:" + concertId;
+        //ConcertId별 티켓 맵
+        Map<Object, Object> cachedTicketMap = ticketRedisTemplate.opsForHash().entries(key);
+
+        if(!cachedTicketMap.isEmpty()){
+            return cachedTicketMap.values().stream().map(TicketInfoAdminResponse::from).toList();
+        }
+
+        var ticketEntityList = ticketRepository.findByConcertIdOrderByCreatedAtAsc(concertEntity);
+
+        return ticketEntityList.stream().map(ticketEntity -> {
+                    ticketRedisTemplate.opsForHash().put(key, RedisHashTicket.from(ticketEntity).getKey(), ticketEntity);
+                    return TicketInfoAdminResponse.from(ticketEntity);})
                 .toList();
     }
 
@@ -120,8 +141,13 @@ public class ReservationService {
                 ticket.getConcertId(), ticket.getSeatGrade(),
                 ticket.getMemberEmail(), ticket.getSeatNumber());
 
+        String key = "ConcertId:" + ticket.getConcertId().getId();
+
+        redisHashTicketRepository.delete(RedisHashTicket.from(ticket));
+        redisTemplate.opsForHash().delete(key, RedisHashTicket.from(ticket).getKey());
         ticketRepository.delete(ticketEntity);
     }
+
 
     //좌석 체크
     public TicketSeatCheckResponse seatCheck(
@@ -131,12 +157,16 @@ public class ReservationService {
         //유효성 검사
         validateSeat(seatGradeEntity, seatNumber);
         //좌석이 있는지 티캣을 통해 확인
+
+
         return ticketRepository.findByConcertIdAndSeatGradeAndSeatNumber(
                         concertEntity, seatGradeEntity, seatNumber)
                 .map(ticket -> new TicketSeatCheckResponse(false))
                 .or(() -> Optional.of(new TicketSeatCheckResponse(true)))
                 .get();
     }
+
+
 
     //등급의 좌석수보다 높으면 예외
     private void validateSeat(
@@ -149,6 +179,7 @@ public class ReservationService {
             throw new SeatNumberValidationException();
     }
 
+
     //이미 존재하는 티켓인지 확인
     private void validateTicket(
             ConcertEntity concertEntity,
@@ -156,9 +187,23 @@ public class ReservationService {
             MemberEntity memberEntity,
             Integer seatNumber) {
 
-        ticketRepository.findByConcertIdAndSeatGradeAndMemberEmailAndSeatNumber(
-                        concertEntity, seatGradeEntity, memberEntity, seatNumber)
+        // redis에서 TicketExistsException() 처리하기 VS Redis & DB 확인후 TicketExistsException() 처리하기
+        String key = RedisHashTicket.ofKey(
+                memberEntity.getEmail(),
+                concertEntity.getId(),
+                seatGradeEntity.getGrade(),
+                seatNumber);
+
+        //redis에서 확인하기
+        redisHashTicketRepository
+                .findById(key)
+                .map(TicketEntity::to)
                 .ifPresent(ticket -> {throw new TicketExistsException();});
+
+        //redis확인 후 db 확인하기
+//        ticketRepository.findByConcertIdAndSeatGradeAndMemberEmailAndSeatNumber(
+//                        concertEntity, seatGradeEntity, memberEntity, seatNumber)
+//                .ifPresent(ticket -> {throw new TicketExistsException();});
     }
 
     //Ticket 객체를 생성하는 메소드
@@ -182,23 +227,43 @@ public class ReservationService {
             MemberEntity memberEntity,
             Integer seatNumber) {
 
-        return ticketRepository.findByConcertIdAndSeatGradeAndMemberEmailAndSeatNumber(
-                concertEntity, seatGradeEntity, memberEntity, seatNumber)
-                .orElseThrow(TicketNotFoundException::new);
+        String key = RedisHashTicket.ofKey(
+                memberEntity.getEmail(),
+                concertEntity.getId(),
+                seatGradeEntity.getGrade(),
+                seatNumber);
+
+        var cachedTicket = redisHashTicketRepository.findById(key).orElseGet(()->{
+            var ticketEntity = ticketRepository.findByConcertIdAndSeatGradeAndMemberEmailAndSeatNumber(
+                    concertEntity, seatGradeEntity, memberEntity, seatNumber).orElseThrow(TicketNotFoundException::new);
+            return redisHashTicketRepository.save(RedisHashTicket.from(ticketEntity));
+        });
+
+        return TicketEntity.to(cachedTicket);
     }
 
     private ConcertEntity getConcertEntity(Long concertId) {
-        return concertRepository
-                .findById(concertId)
-                .orElseThrow(ConcertNotFoundException::new);
+
+        var cachedConcert = redisHashConcertRepository.findById("Concert:"+concertId).orElseGet(() ->{
+            var concertEntity = concertRepository.findById(concertId).orElseThrow(ConcertNotFoundException::new);
+            return redisHashConcertRepository.save(RedisHashConcert.from(concertEntity));
+                }
+        );
+        return ConcertEntity.to(cachedConcert);
     }
 
     private SeatGradeEntity getSeatGradeEntity(
             ConcertEntity concertEntity,
             String grade) {
-        return seatGradeRepository
-                .findByConcertIdAndGrade(
+        String key = RedisHashSeatGrade.ofKey(concertEntity.getId(), grade);
+
+        var cachedConcert = redisHashSeatGradeRepository.findById("SeatGrade:"+key).orElseGet(() ->{
+                    var seatGradeEntity = seatGradeRepository.findByConcertIdAndGrade(
                         concertEntity, grade.toUpperCase())
-                .orElseThrow(SeatGradeNotFoundException::new);
+                            .orElseThrow(SeatGradeNotFoundException::new);
+                    return redisHashSeatGradeRepository.save(RedisHashSeatGrade.from(seatGradeEntity));
+                }
+        );
+        return SeatGradeEntity.to(cachedConcert);
     }
 }

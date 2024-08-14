@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -35,10 +33,8 @@ public class ConcertEntity {
     private LocalDateTime showEnd;
     private LocalDateTime ticketingTime;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
@@ -54,4 +50,19 @@ public class ConcertEntity {
     private void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public static ConcertEntity to(RedisHashConcert redisHashConcert) {
+        return ConcertEntity.builder()
+                .id(redisHashConcert.getId())
+                .concertName(redisHashConcert.getConcertName())
+                .performer(redisHashConcert.getPerformer())
+                .showStart(redisHashConcert.getShowStart())
+                .showEnd(redisHashConcert.getShowEnd())
+                .ticketingTime(redisHashConcert.getTicketingTime())
+                .createdAt(redisHashConcert.getCreatedAt())
+                .updatedAt(redisHashConcert.getUpdatedAt())
+                .deletedAt(redisHashConcert.getDeletedAt())
+                .build();
+    }
+
 }

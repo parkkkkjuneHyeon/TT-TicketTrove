@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -41,10 +39,8 @@ public class SeatGradeEntity {
     private Integer price;
     private Integer totalSeat;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
@@ -71,4 +67,18 @@ public class SeatGradeEntity {
                 .totalSeat(totalSeat)
                 .build();
     }
+
+    public static SeatGradeEntity to(RedisHashSeatGrade redisHashSeatGrade) {
+        return SeatGradeEntity.builder()
+                .id(redisHashSeatGrade.getId())
+                .concertId(redisHashSeatGrade.getConcertId())
+                .grade(redisHashSeatGrade.getGrade())
+                .price(redisHashSeatGrade.getPrice())
+                .totalSeat(redisHashSeatGrade.getTotalSeat())
+                .createdAt(redisHashSeatGrade.getCreatedAt())
+                .updatedAt(redisHashSeatGrade.getUpdatedAt())
+                .build();
+    }
+
+
 }

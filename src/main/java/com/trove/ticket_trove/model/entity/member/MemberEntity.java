@@ -1,19 +1,15 @@
 package com.trove.ticket_trove.model.entity.member;
 
-import com.trove.ticket_trove.model.entity.jwt.RefreshTokenEntity;
 import com.trove.ticket_trove.model.user.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -44,10 +40,8 @@ public class MemberEntity implements UserDetails {
     private Integer age;
     private Role role;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
@@ -117,5 +111,19 @@ public class MemberEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public static MemberEntity to(RedisHashMember redisHashMember) {
+        return MemberEntity.builder()
+                .id(redisHashMember.getId())
+                .name(redisHashMember.getName())
+                .email(redisHashMember.getEmail())
+                .password(redisHashMember.getPassword())
+                .gender(redisHashMember.getGender())
+                .age(redisHashMember.getAge())
+                .role(redisHashMember.getRole())
+                .createdAt(redisHashMember.getCreatedAt())
+                .updatedAt(redisHashMember.getUpdatedAt())
+                .build();
     }
 }
