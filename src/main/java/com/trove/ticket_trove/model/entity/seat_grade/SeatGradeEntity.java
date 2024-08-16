@@ -68,7 +68,7 @@ public class SeatGradeEntity {
                 .build();
     }
 
-    public static SeatGradeEntity to(RedisHashSeatGrade redisHashSeatGrade) {
+    public static SeatGradeEntity from(RedisHashSeatGrade redisHashSeatGrade) {
         return SeatGradeEntity.builder()
                 .id(redisHashSeatGrade.getId())
                 .concertId(redisHashSeatGrade.getConcertId())

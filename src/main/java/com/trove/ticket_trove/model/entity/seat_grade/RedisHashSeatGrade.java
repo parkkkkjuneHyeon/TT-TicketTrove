@@ -1,11 +1,11 @@
 package com.trove.ticket_trove.model.entity.seat_grade;
 
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
@@ -14,11 +14,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash("SeatGrade:")
+@RedisHash("SeatGrade")
 public class RedisHashSeatGrade {
     @Id
     private String key;
-
     private Long id;
     private ConcertEntity concertId;
     private String grade;
@@ -38,9 +37,24 @@ public class RedisHashSeatGrade {
     }
 
     public static RedisHashSeatGrade from(SeatGradeEntity seatGradeEntity) {
-        return new RedisHashSeatGrade(ofKey(seatGradeEntity),
+        return new RedisHashSeatGrade(
+                ofKey(seatGradeEntity),
                 seatGradeEntity.getId(),
                 seatGradeEntity.getConcertId(),
+                seatGradeEntity.getGrade(),
+                seatGradeEntity.getPrice(),
+                seatGradeEntity.getTotalSeat(),
+                seatGradeEntity.getCreatedAt(),
+                seatGradeEntity.getUpdatedAt(),
+                seatGradeEntity.getDeletedAt());
+    }
+    public static RedisHashSeatGrade from(
+            SeatGradeEntity seatGradeEntity,
+            ConcertEntity concertEntity) {
+        return new RedisHashSeatGrade(
+                ofKey(seatGradeEntity),
+                seatGradeEntity.getId(),
+                concertEntity,
                 seatGradeEntity.getGrade(),
                 seatGradeEntity.getPrice(),
                 seatGradeEntity.getTotalSeat(),

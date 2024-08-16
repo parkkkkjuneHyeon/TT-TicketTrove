@@ -34,8 +34,8 @@ public class ConcertController {
     //콘서트 조회
     @GetMapping
     public ResponseEntity<List<ConcertInfoResponse>> getConcerts(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "3") Integer size
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         var concertResponses = concertService.searchConcerts(page, size);
         return ResponseEntity.ok(concertResponses);
