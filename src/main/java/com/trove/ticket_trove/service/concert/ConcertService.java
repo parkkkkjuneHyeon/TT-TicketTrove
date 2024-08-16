@@ -41,7 +41,7 @@ public class ConcertService {
     @Transactional
     public void addConcert(ConcertCreateRequest request) {
         validateConcert(request.concertName(), request.performer());
-        var concertEntity = ConcertEntity.builder()
+        var concert = ConcertEntity.builder()
                 .concertName(request.concertName())
                 .performer(request.performer())
                 .showStart(request.showStart())
@@ -51,7 +51,7 @@ public class ConcertService {
         var seatGradeCreateRequests = request.gradeTypes();
 
         //공연장 저장
-        concertRepository.save(concertEntity);
+        var concertEntity = concertRepository.save(concert);
 
         //공연장 등급 저장
         seatGradeCreateRequests.stream().map(sg ->
@@ -123,6 +123,10 @@ public class ConcertService {
         seatGradeRepository.deleteAllByConcertId(concertEntity);
         concertRepository.delete(concertEntity);
     }
+    @Transactional
+    public void deleteSeatGrade() {
+
+    }
 
     //등급 테이블 업데이트
     private List<SeatGradeUpdateResponse> updateSeatGrade(
@@ -133,7 +137,10 @@ public class ConcertService {
                 .map(sgq -> {
                     SeatGradeEntity seatGradeEntity =  null;
                     if (!ObjectUtils.isEmpty(sgq.previousGrade())
-                        && !ObjectUtils.isEmpty(sgq.previousPrice())) {
+                        && !ObjectUtils.isEmpty(sgq.previousPrice())
+                        && ( !ObjectUtils.isEmpty(sgq.updateGrade())
+                            || !ObjectUtils.isEmpty(sgq.updatePrice())
+                            || !ObjectUtils.isEmpty(sgq.updateTotalSeat())) ) {
                         seatGradeEntity = getSeatGradeEntity(
                                 concertEntity,
                                 sgq.previousGrade(),
@@ -162,6 +169,20 @@ public class ConcertService {
                                 sgq.updateTotalSeat());
                         return SeatGradeUpdateResponse
                                 .from(seatGradeRepository.save(seatGradeEntity));
+                    }else if (!ObjectUtils.isEmpty(sgq.previousGrade())
+                            && !ObjectUtils.isEmpty(sgq.previousPrice())
+                            && ObjectUtils.isEmpty(sgq.updateGrade())
+                            && ObjectUtils.isEmpty(sgq.updatePrice())
+                            && ObjectUtils.isEmpty(sgq.updateTotalSeat())) {
+                        seatGradeEntity = SeatGradeEntity.from(
+                                concertEntity,
+                                null,
+                                null,
+                                null);
+                        seatGradeRepository
+                                .deleteByConcertIdAndGradeAndPrice(
+                                        concertEntity, sgq.previousGrade(), sgq.previousPrice());
+                        return SeatGradeUpdateResponse.from(seatGradeEntity);
                     }else {
                         throw new SeatGradeNotFoundException();
                     }
