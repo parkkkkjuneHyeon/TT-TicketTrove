@@ -40,6 +40,7 @@ public class WebSecurityConfig {
                 List.of("http://127.0.0.1:3000","http://localhost:3000"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowedMethods(List.of("GET","POST","PATCH","DELETE"));
+        corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/*/**", corsConfiguration);
