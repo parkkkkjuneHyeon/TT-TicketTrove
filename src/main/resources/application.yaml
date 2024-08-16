@@ -2,7 +2,7 @@ spring:
   datasource:
     username: ${ROOT:root}
     password: ${ROOT_PASSWORD:1234}
-    url: jdbc:mysql://${TICKET_MYSQL_HOST:localhost}:4306/ticket_trove?rewriteBatchedStatements=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${TICKET_MYSQL_HOST:localhost}:3306/ticket_trove?rewriteBatchedStatements=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -19,7 +19,8 @@ logging:
   level:
     org.hibernate.orm.jdbc.bind: TRACE
     root: info
-
+jwt:
+  secret-key: ${JWT_SECRET_KEY:NjRLWTY0cVU3S0NjN0oyMDY0MlU2N2lVN0p5ZzY0dWtDZz09}
 server:
   port: ${SERVER_PORT:8001}
 
