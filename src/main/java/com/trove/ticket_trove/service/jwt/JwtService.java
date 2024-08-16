@@ -8,10 +8,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -33,7 +30,7 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         var now = new Date();
-        var expire = new Date(now.getTime() + 1000 * 5);
+        var expire = new Date(now.getTime() + 1000 * 60);
         return createToken(
                 userDetails.getUsername(),
                 expire, now);
@@ -41,7 +38,7 @@ public class JwtService {
     @Transactional
     public String generateRefreshToken(UserDetails userDetails) {
         var now = new Date();
-        var expire = new Date(now.getTime() + 1000 * 60 * 24 * 7);
+        var expire = new Date(now.getTime() + 1000 * 60 * 30);
         var refreshToken =  createToken(
                 userDetails.getUsername(),
                 expire, now);
@@ -68,8 +65,8 @@ public class JwtService {
                 .findByRefreshToken(refreshToken)
                 .orElseThrow(JwtRefreshTokenNotFoundException::new);
     }
-    //30초마다 만료된 토큰은 삭제
-    @Scheduled(cron = "*/30 * * * * ?")
+    //3분마다 만료된 토큰은 삭제
+    @Scheduled(cron = "0 */3 * * * ?")
     public void cleanExpiredTokens() {
         refreshTokenRepository.deleteExpiredToken(new Date().getTime());
     }

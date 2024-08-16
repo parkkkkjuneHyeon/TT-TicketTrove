@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 
-
+@Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
@@ -45,19 +46,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String accessToken = authorizationHeader.substring(BEARER.length());
             String username = null;
             UserDetails userDetails = null;
-
+            log.info("access token: {}", accessToken);
             if (!jwtService.checkExpireToken(accessToken)) {
                 var refreshToken = findByRefreshTokenInCookie(request);
+                log.info("Refresh token: " + refreshToken);
                 jwtService.validationRefreshToken(refreshToken);
                 username = jwtService.getUsername(refreshToken);
                 userDetails = loginService.loadUserByUsername(username);
                 accessToken = jwtService.generateToken(userDetails);
 
                 Cookie accessTokenCookie =
-                        new Cookie("access_token", accessToken);
+                        new Cookie("accessToken", accessToken);
                 accessTokenCookie.setPath("/");
+                accessTokenCookie.setMaxAge(60 * 30);
                 response.addCookie(accessTokenCookie);
-
                 setAuthentication(userDetails);
             }else {
                 username = jwtService.getUsername(accessToken);
@@ -80,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
         return Arrays.stream(cookies)
-                .filter(cookie -> cookie.getName().equals("refresh_token"))
+                .filter(cookie -> cookie.getName().equals("refreshToken"))
                 .map(Cookie::getValue)
                 .findFirst().orElse(null);
     }
