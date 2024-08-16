@@ -1,10 +1,10 @@
 package com.trove.ticket_trove.model.entity.concert;
 
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@RedisHash("Concert:")
+@RedisHash("Concert")
 public class RedisHashConcert {
     @Id
     private long id;

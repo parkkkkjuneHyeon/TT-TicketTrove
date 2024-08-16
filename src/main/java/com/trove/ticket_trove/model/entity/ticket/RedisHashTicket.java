@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+import java.lang.reflect.Member;
 import java.time.LocalDateTime;
 
 
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@RedisHash(value = "Ticket:")
+@RedisHash(value = "Ticket")
 public class RedisHashTicket {
     @Id
     private String key;
@@ -37,17 +38,19 @@ public class RedisHashTicket {
                 +ticketEntity.getSeatGrade().getGrade()
                 +ticketEntity.getSeatNumber();
     }
-
-    public static String ofKey(String email, long concertId, String grade, Integer seatNumber) {
+    public static String ofKey(
+            String email, long concertId, String grade, Integer seatNumber) {
         return email+concertId+grade+seatNumber;
     }
 
-    public static RedisHashTicket from(TicketEntity ticketEntity) {
+    public static RedisHashTicket from(
+            TicketEntity ticketEntity, MemberEntity memberEntity,
+            ConcertEntity concertEntity, SeatGradeEntity seatGradeEntity) {
         return new RedisHashTicket(ofKey(ticketEntity),
                 ticketEntity.getId(),
-                ticketEntity.getMemberEmail(),
-                ticketEntity.getConcertId(),
-                ticketEntity.getSeatGrade(),
+                memberEntity,
+                concertEntity,
+                seatGradeEntity,
                 ticketEntity.getSeatNumber(),
                 ticketEntity.getCreatedAt(),
                 ticketEntity.getUpdatedAt(),

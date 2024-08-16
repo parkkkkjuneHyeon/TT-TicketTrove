@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(
                         columnNames = {
                                 "member_email", "seat_grade",
-                                "concert_id", "seat_number"
+                                "concert_id", "seat_number", "deleted_at"
                         })
         },
         indexes = {
@@ -87,7 +87,7 @@ public class TicketEntity {
                 .build();
     }
 
-    public static TicketEntity to(RedisHashTicket redisHashTicket) {
+    public static TicketEntity from(RedisHashTicket redisHashTicket) {
         return TicketEntity.builder()
                 .id(redisHashTicket.getId())
                 .memberEmail(redisHashTicket.getMemberEmail())

@@ -51,7 +51,7 @@ public class ConcertEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    public static ConcertEntity to(RedisHashConcert redisHashConcert) {
+    public static ConcertEntity from(RedisHashConcert redisHashConcert) {
         return ConcertEntity.builder()
                 .id(redisHashConcert.getId())
                 .concertName(redisHashConcert.getConcertName())

@@ -9,7 +9,9 @@ import com.trove.ticket_trove.exception.ClientErrorException;
 import com.trove.ticket_trove.exception.member.MemberExistsException;
 import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
+import com.trove.ticket_trove.model.entity.member.RedisHashMember;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
+import com.trove.ticket_trove.model.storage.member.RedisHashMemberRepository;
 import com.trove.ticket_trove.model.user.Role;
 import com.trove.ticket_trove.service.jwt.JwtService;
 import jakarta.servlet.http.Cookie;
@@ -32,14 +34,17 @@ public class LoginService implements UserDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(LoginService.class);
     private final MemberRepository memberRepository;
+    private final RedisHashMemberRepository redisHashMemberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtService jwtService;
 
     public LoginService(
             MemberRepository memberRepository,
+            RedisHashMemberRepository redisHashMemberRepository,
             BCryptPasswordEncoder bCryptPasswordEncoder,
             JwtService jwtService) {
         this.memberRepository = memberRepository;
+        this.redisHashMemberRepository = redisHashMemberRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.jwtService = jwtService;
     }
@@ -55,6 +60,7 @@ public class LoginService implements UserDetailsService {
                 request.gender(),
                 request.age(),
                 Role.USER);
+        addCacheMember(memberEntity);
         memberRepository.save(memberEntity);
     }
     //관리자회원가입
@@ -69,9 +75,9 @@ public class LoginService implements UserDetailsService {
                 request.gender(),
                 request.age(),
                 Role.ADMIN);
+        addCacheMember(memberEntity);
         memberRepository.save(memberEntity);
     }
-
     //로그인
     public JwtLoginResponse authenticate(
             MemberLoginRequest request,
@@ -85,18 +91,17 @@ public class LoginService implements UserDetailsService {
 
         if (!jwtService.checkExpireToken(refreshToken)) {
             refreshToken = jwtService.generateRefreshToken(memberEntity);
-            Cookie cookie = new Cookie("refresh_token", refreshToken);
+            Cookie cookie = new Cookie("refreshToken", refreshToken);
             cookie.setPath("/");
-            cookie.setHttpOnly(true); // 서버에서만 열 수 있게 적용
 //        cookie.setSecure(true); SSL설정 후 사용
-            cookie.setMaxAge(60 * 60 * 24 * 7);
+            cookie.setMaxAge(60 * 60 * 3);
             servletResponse.addCookie(cookie);
         }
         return new JwtLoginResponse(accessToken);
     }
-
     @Transactional
     public void deleteMember(MemberDeleteRequest request) {
+        redisHashMemberRepository.deleteById(request.email());
         memberRepository.deleteByEmail(request.email());
     }
 
@@ -112,9 +117,7 @@ public class LoginService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return memberRepository
-                .findByEmail(email)
-                .orElseThrow(MemberNotFoundException::new);
+        return getMemberEntityFromCached(email);
     }
 
     private void validateExistsEmail(String email) {
@@ -124,11 +127,11 @@ public class LoginService implements UserDetailsService {
     }
 
     private MemberEntity getMemberEntity(String email) {
-        return memberRepository
-                .findByEmail(email)
-                .orElseThrow(MemberNotFoundException::new);
+        return getMemberEntityFromCached(email);
     }
+
     //쿠키에서 리프레쉬토큰 추출
+
     private String findByRefreshTokenInCookie(HttpServletRequest request) {
         var cookies = request.getCookies();
         if (cookies == null) {
@@ -139,5 +142,19 @@ public class LoginService implements UserDetailsService {
                 .map(Cookie::getValue)
                 .findFirst().orElse(null);
     }
+    private void addCacheMember(MemberEntity memberEntity) {
+        redisHashMemberRepository.save(RedisHashMember.from(memberEntity));
+    }
 
+    private MemberEntity getMemberEntityFromCached(String email) {
+        return MemberEntity.from(redisHashMemberRepository.findById(email)
+                .orElseGet(() -> {
+                    var memberentity = memberRepository
+                            .findByEmail(email)
+                            .orElseThrow(MemberNotFoundException::new);
+
+                    return redisHashMemberRepository
+                            .save(RedisHashMember.from(memberentity));
+                }));
+    }
 }

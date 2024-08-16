@@ -10,6 +10,7 @@ import com.trove.ticket_trove.dto.seatGrade.response.SeatGradeInfoResponse;
 import com.trove.ticket_trove.dto.seatGrade.response.SeatGradeUpdateResponse;
 import com.trove.ticket_trove.exception.concert.ConcertExistsException;
 import com.trove.ticket_trove.exception.concert.ConcertNotFoundException;
+import com.trove.ticket_trove.exception.seatgrade.SeatGradeExistsException;
 import com.trove.ticket_trove.exception.seatgrade.SeatGradeNotFoundException;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
@@ -96,7 +97,9 @@ public class ConcertService {
 
     //콘서트 전체 조회
     public List<ConcertInfoResponse> searchConcerts(Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = null;
+        if (!ObjectUtils.isEmpty(page) && !ObjectUtils.isEmpty(size))
+            pageable = PageRequest.of(page, size);
 
         return concertRepository.findAllByOrderByShowStartAsc(pageable).stream()
                 .map(ConcertInfoResponse::from).toList();
@@ -128,13 +131,13 @@ public class ConcertService {
 
         return seatGradeUpdateRequests.stream()
                 .map(sgq -> {
+                    SeatGradeEntity seatGradeEntity =  null;
                     if (!ObjectUtils.isEmpty(sgq.previousGrade())
                         && !ObjectUtils.isEmpty(sgq.previousPrice())) {
-                        var seatGradeEntity = getSeatGradeEntity(
+                        seatGradeEntity = getSeatGradeEntity(
                                 concertEntity,
                                 sgq.previousGrade(),
                                 sgq.previousPrice());
-
                         if (!ObjectUtils.isEmpty(sgq.updateGrade()))
                             seatGradeEntity.setGrade(sgq.updateGrade());
 
@@ -146,8 +149,22 @@ public class ConcertService {
 
                         return SeatGradeUpdateResponse.from(
                                 seatGradeRepository.save(seatGradeEntity));
+                    }else if (ObjectUtils.isEmpty(sgq.previousGrade())
+                            && ObjectUtils.isEmpty(sgq.previousPrice())
+                            && !ObjectUtils.isEmpty(sgq.updateGrade())
+                            && !ObjectUtils.isEmpty(sgq.updatePrice())
+                            && !ObjectUtils.isEmpty(sgq.updateTotalSeat())) {
+                        validateSeatGrade(concertEntity, sgq.updateGrade().toUpperCase());
+                        seatGradeEntity = SeatGradeEntity.from(
+                                concertEntity,
+                                sgq.updateGrade(),
+                                sgq.updatePrice(),
+                                sgq.updateTotalSeat());
+                        return SeatGradeUpdateResponse
+                                .from(seatGradeRepository.save(seatGradeEntity));
+                    }else {
+                        throw new SeatGradeNotFoundException();
                     }
-                    throw new SeatGradeNotFoundException();
                 }).toList();
     }
 
@@ -160,7 +177,14 @@ public class ConcertService {
                         price)
                 .orElseThrow(SeatGradeNotFoundException::new);
     }
-
+    private void validateSeatGrade(
+            ConcertEntity concertEntity, String grade) {
+        seatGradeRepository
+                .findByConcertIdAndGrade(
+                        concertEntity,
+                        grade.toUpperCase())
+                .ifPresent(sg -> {throw new SeatGradeExistsException();});
+    }
     private ConcertEntity getConcertEntity(Long id) {
         return concertRepository.findById(id)
                 .orElseThrow(ConcertNotFoundException::new);

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.trove.ticket_trove.dto.ticket.response.TicketInfoAdminResponse;
 import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,17 +47,19 @@ public class RedisConfig {
 
     //ticketEntity redisTemplate
     @Bean
-    RedisTemplate<String, TicketEntity> ticketEntityRedisTemplateredisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, TicketInfoAdminResponse> ticketEntityRedisTemplateredisTemplate(RedisConnectionFactory redisConnectionFactory) {
         //기본 ObjectMapper를 사용 할 경우 시간입력에서 오류가 남
         var objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .registerModule(new JavaTimeModule())
                 .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 
-        var redisTemplate = new RedisTemplate<String, TicketEntity>();
+        var redisTemplate = new RedisTemplate<String, TicketInfoAdminResponse>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(objectMapper, TicketEntity.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<TicketInfoAdminResponse>(objectMapper, TicketInfoAdminResponse.class));
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<TicketInfoAdminResponse>(objectMapper, TicketInfoAdminResponse.class));
         return redisTemplate;
 
     }
