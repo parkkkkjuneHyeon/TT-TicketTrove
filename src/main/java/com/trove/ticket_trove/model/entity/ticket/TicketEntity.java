@@ -87,16 +87,5 @@ public class TicketEntity {
                 .build();
     }
 
-    public static TicketEntity from(RedisHashTicket redisHashTicket) {
-        return TicketEntity.builder()
-                .id(redisHashTicket.getId())
-                .memberEmail(redisHashTicket.getMemberEmail())
-                .concertId(redisHashTicket.getConcertId())
-                .seatGrade(redisHashTicket.getSeatGrade())
-                .seatNumber(redisHashTicket.getSeatNumber())
-                .createdAt(redisHashTicket.getCreatedAt())
-                .updatedAt(redisHashTicket.getUpdatedAt())
-                .build();
-    }
 }
 

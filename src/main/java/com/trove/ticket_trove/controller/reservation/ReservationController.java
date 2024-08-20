@@ -3,7 +3,7 @@ package com.trove.ticket_trove.controller.reservation;
 import com.trove.ticket_trove.dto.ticket.request.TicketCreateRequest;
 import com.trove.ticket_trove.dto.ticket.request.TicketDeleteRequest;
 import com.trove.ticket_trove.dto.ticket.request.TicketSearchRequest;
-import com.trove.ticket_trove.dto.ticket.response.TicketInfoAdminResponse;
+import com.trove.ticket_trove.dto.ticket.response.TicketDetailResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
@@ -76,9 +76,10 @@ public class ReservationController {
                 request);
         return ResponseEntity.ok(ticketInfoResponse);
     }
+
     //공연장 티켓 전체 조회
     @GetMapping("/concert-tickets/{concertId}")
-    public ResponseEntity<List<TicketInfoAdminResponse>> searchConcertTickets(
+    public ResponseEntity<List<TicketDetailResponse>> searchConcertTickets(
             @PathVariable Long concertId,
             @RequestParam(defaultValue = "0", required = false) Integer page,
             @RequestParam(defaultValue = "3", required = false) Integer size
