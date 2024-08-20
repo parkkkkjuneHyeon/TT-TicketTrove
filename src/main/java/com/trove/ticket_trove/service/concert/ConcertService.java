@@ -20,11 +20,11 @@ import com.trove.ticket_trove.service.redis.ConcertRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,7 +38,9 @@ public class ConcertService {
     //콘서트 생성
     @Transactional
     public void addConcert(ConcertCreateRequest request) {
-        validateConcert(request.concertName(), request.performer());
+        validateConcert(request.concertName(),
+                request.performer(), request.showStart());
+
         var concert = ConcertEntity.builder()
                 .concertName(request.concertName())
                 .performer(request.performer())
@@ -246,11 +248,14 @@ public class ConcertService {
                 .orElseThrow(ConcertNotFoundException::new);
     }
 
-    private void validateConcert(String concertName, String performer) {
-        concertRepository.findByConcertNameAndPerformer(
-                concertName, performer)
+    private void validateConcert(
+            String concertName,
+            String performer,
+            LocalDateTime showStart) {
+        concertRepository.findByConcertNameAndPerformerAndShowStart(
+                concertName, performer, showStart)
                 .ifPresent(concert -> {
-                    throw new ConcertExistsException(concertName, performer);
+                    throw new ConcertExistsException(concertName, performer, showStart);
         });
     }
 }

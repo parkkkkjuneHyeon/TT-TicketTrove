@@ -36,7 +36,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ReservationService {
     private final TicketRepository ticketRepository;
-    private final ConcertRepository concertRepository;
     private final SeatGradeRepository seatGradeRepository;
     private final TicketRedisService ticketRedisService;
     private final ConcertService concertService;
