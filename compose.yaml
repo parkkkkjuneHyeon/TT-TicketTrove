@@ -1,0 +1,31 @@
+
+services:
+  tt-was:
+    image: gktkwk/ticket-trove:v3
+    ports:
+      - "8001:8001"
+    networks:
+      - tt-net
+    environment:
+      TICKET_MYSQL_HOST: tt-sql
+      REDIS_HOST: tt-redis
+    depends_on:
+      - tt-sql
+      - tt-redis
+
+  tt-sql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    networks:
+      - tt-net
+
+  tt-redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - tt-net
+
+networks:
+  tt-net:
