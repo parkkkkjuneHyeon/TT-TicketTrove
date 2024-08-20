@@ -4,7 +4,7 @@ import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
 
 import java.time.LocalDateTime;
 
-public record TicketInfoAdminResponse(
+public record TicketDetailResponse(
         Long ticketId,
         String name,
         String email,
@@ -18,11 +18,11 @@ public record TicketInfoAdminResponse(
         LocalDateTime createdAt,
         LocalDateTime deletedAt
 ) {
-    public static TicketInfoAdminResponse from(
+    public static TicketDetailResponse from(
             TicketEntity ticketEntity
     ) {
         var concertEntity = ticketEntity.getConcertId();
-        return new TicketInfoAdminResponse(
+        return new TicketDetailResponse(
                 ticketEntity.getId(),
                 ticketEntity.getMemberEmail().getName(),
                 ticketEntity.getMemberEmail().getEmail(),
@@ -37,7 +37,7 @@ public record TicketInfoAdminResponse(
                 ticketEntity.getDeletedAt());
     }
 
-    public static TicketInfoAdminResponse from(
+    public static TicketDetailResponse from(
             Object object
     ) {
         if (object != null) {

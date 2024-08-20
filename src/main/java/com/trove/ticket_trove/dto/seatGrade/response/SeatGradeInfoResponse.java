@@ -15,4 +15,5 @@ public record SeatGradeInfoResponse(
                 seatGradeEntity.getPrice(),
                 seatGradeEntity.getTotalSeat());
     }
+
 }
