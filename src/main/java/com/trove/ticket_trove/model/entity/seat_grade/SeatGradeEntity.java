@@ -68,17 +68,4 @@ public class SeatGradeEntity {
                 .build();
     }
 
-    public static SeatGradeEntity from(RedisHashSeatGrade redisHashSeatGrade) {
-        return SeatGradeEntity.builder()
-                .id(redisHashSeatGrade.getId())
-                .concertId(redisHashSeatGrade.getConcertId())
-                .grade(redisHashSeatGrade.getGrade())
-                .price(redisHashSeatGrade.getPrice())
-                .totalSeat(redisHashSeatGrade.getTotalSeat())
-                .createdAt(redisHashSeatGrade.getCreatedAt())
-                .updatedAt(redisHashSeatGrade.getUpdatedAt())
-                .build();
-    }
-
-
 }

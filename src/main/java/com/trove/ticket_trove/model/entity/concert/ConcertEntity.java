@@ -1,6 +1,7 @@
 package com.trove.ticket_trove.model.entity.concert;
 
 
+import com.trove.ticket_trove.dto.concert.response.ConcertDetailsInfoResponse;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -51,18 +52,20 @@ public class ConcertEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    public static ConcertEntity from(RedisHashConcert redisHashConcert) {
+    public static ConcertEntity from(ConcertDetailsInfoResponse concertDetailsInfoResponse){
         return ConcertEntity.builder()
-                .id(redisHashConcert.getId())
-                .concertName(redisHashConcert.getConcertName())
-                .performer(redisHashConcert.getPerformer())
-                .showStart(redisHashConcert.getShowStart())
-                .showEnd(redisHashConcert.getShowEnd())
-                .ticketingTime(redisHashConcert.getTicketingTime())
-                .createdAt(redisHashConcert.getCreatedAt())
-                .updatedAt(redisHashConcert.getUpdatedAt())
-                .deletedAt(redisHashConcert.getDeletedAt())
+                .id(concertDetailsInfoResponse.concertId())
+                .concertName(concertDetailsInfoResponse.concertName())
+                .performer(concertDetailsInfoResponse.performer())
+                .showStart(concertDetailsInfoResponse.showStart())
+                .showEnd(concertDetailsInfoResponse.showEnd())
+                .ticketingTime(concertDetailsInfoResponse.ticketingTime())
                 .build();
+
+
     }
+
+
+
 
 }
