@@ -6,6 +6,7 @@ import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 

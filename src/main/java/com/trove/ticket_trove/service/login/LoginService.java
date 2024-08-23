@@ -9,16 +9,17 @@ import com.trove.ticket_trove.exception.ClientErrorException;
 import com.trove.ticket_trove.exception.member.MemberExistsException;
 import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
-import com.trove.ticket_trove.model.entity.member.RedisHashMember;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
-import com.trove.ticket_trove.model.storage.member.RedisHashMemberRepository;
 import com.trove.ticket_trove.model.user.Role;
 import com.trove.ticket_trove.service.jwt.JwtService;
+import com.trove.ticket_trove.service.redis.MemberRedisService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,24 +31,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 
 @Service
+@RequiredArgsConstructor
 public class LoginService implements UserDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(LoginService.class);
     private final MemberRepository memberRepository;
-    private final RedisHashMemberRepository redisHashMemberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtService jwtService;
+    private final MemberRedisService memberRedisService;
 
-    public LoginService(
-            MemberRepository memberRepository,
-            RedisHashMemberRepository redisHashMemberRepository,
-            BCryptPasswordEncoder bCryptPasswordEncoder,
-            JwtService jwtService) {
-        this.memberRepository = memberRepository;
-        this.redisHashMemberRepository = redisHashMemberRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.jwtService = jwtService;
-    }
+
 
     //유저회원가입
     @Transactional
@@ -60,7 +53,7 @@ public class LoginService implements UserDetailsService {
                 request.gender(),
                 request.age(),
                 Role.USER);
-        addCacheMember(memberEntity);
+        memberRedisService.save(memberEntity);
         memberRepository.save(memberEntity);
     }
     //관리자회원가입
@@ -75,7 +68,7 @@ public class LoginService implements UserDetailsService {
                 request.gender(),
                 request.age(),
                 Role.ADMIN);
-        addCacheMember(memberEntity);
+        memberRedisService.save(memberEntity);
         memberRepository.save(memberEntity);
     }
     //로그인
@@ -101,8 +94,8 @@ public class LoginService implements UserDetailsService {
     }
     @Transactional
     public void deleteMember(MemberDeleteRequest request) {
-        redisHashMemberRepository.deleteById(request.email());
         memberRepository.deleteByEmail(request.email());
+        memberRedisService.delete(request.email());
     }
 
     private void validatePassword(
@@ -117,17 +110,27 @@ public class LoginService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return getMemberEntityFromCached(email);
+        return getMemberEntity(email);
     }
 
     private void validateExistsEmail(String email) {
+        var memberInfo = memberRedisService.get(email);
+        if (memberInfo != null) {
+            throw new MemberExistsException(email);
+        }
         memberRepository.findByEmail(email).ifPresent(m -> {
                 throw new MemberExistsException(email);
         });
     }
 
     private MemberEntity getMemberEntity(String email) {
-        return getMemberEntityFromCached(email);
+        var memberInfo = memberRedisService.get(email);
+        if(memberInfo != null){
+            return memberInfo;
+        }
+        memberInfo = memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
+        memberRedisService.save(memberInfo);
+        return memberInfo;
     }
 
     //쿠키에서 리프레쉬토큰 추출
@@ -141,20 +144,5 @@ public class LoginService implements UserDetailsService {
                 .filter(cookie -> cookie.getName().equals("refresh_token"))
                 .map(Cookie::getValue)
                 .findFirst().orElse(null);
-    }
-    private void addCacheMember(MemberEntity memberEntity) {
-        redisHashMemberRepository.save(RedisHashMember.from(memberEntity));
-    }
-
-    private MemberEntity getMemberEntityFromCached(String email) {
-        return MemberEntity.from(redisHashMemberRepository.findById(email)
-                .orElseGet(() -> {
-                    var memberentity = memberRepository
-                            .findByEmail(email)
-                            .orElseThrow(MemberNotFoundException::new);
-
-                    return redisHashMemberRepository
-                            .save(RedisHashMember.from(memberentity));
-                }));
     }
 }

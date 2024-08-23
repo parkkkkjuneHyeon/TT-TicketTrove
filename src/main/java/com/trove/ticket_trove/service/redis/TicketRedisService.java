@@ -11,11 +11,14 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class TicketRedisService {
-    private final RedisTemplate<String, TicketDetailResponse> redisTemplate;
+    private final RedisTemplate<String, TicketDetailResponse> ticketTemplate;
+    private final RedisTemplate<String, TicketDetailResponse> ticketReplicaTemplate;
+    private final RedisTemplate<String, TicketDetailResponse> ticketReplica2Template;
 
     public static String key(Long concertId){
         return "Ticket:Concert:" + concertId;
     }
+
 
     public static String subKey(TicketEntity ticketEntity){
         return "key:"
@@ -29,20 +32,20 @@ public class TicketRedisService {
     }
 
     public void save(TicketEntity ticketEntity){
-        redisTemplate.opsForHash().put(key(ticketEntity.getConcertId().getId()),
+        ticketTemplate.opsForHash().put(key(ticketEntity.getConcertId().getId()),
                 subKey(ticketEntity),
                 TicketDetailResponse.from(ticketEntity));
     }
 
     public Map<Object, Object> getTicketList(String key){
-        return redisTemplate.opsForHash().entries(key);
+        return ticketReplicaTemplate.opsForHash().entries(key);
     }
 
     public TicketDetailResponse getTicketInfo(String key, String subKey){
-        return (TicketDetailResponse) redisTemplate.opsForHash().get(key, subKey);
+        return (TicketDetailResponse) ticketReplica2Template.opsForHash().get(key, subKey);
     }
 
     public void delete(String key, String subKey){
-       redisTemplate.opsForHash().delete(key, subKey);
+       ticketTemplate.opsForHash().delete(key, subKey);
     }
 }

@@ -1,5 +1,6 @@
 package com.trove.ticket_trove.model.entity.member;
 
+import com.trove.ticket_trove.dto.member.request.Member;
 import com.trove.ticket_trove.model.user.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberEntity implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -73,20 +75,6 @@ public class MemberEntity implements UserDetails {
                 .build();
     }
 
-    public static MemberEntity from(RedisHashMember redisHashMember) {
-        return MemberEntity.builder()
-                .id(redisHashMember.getId())
-                .name(redisHashMember.getName())
-                .email(redisHashMember.getEmail())
-                .password(redisHashMember.getPassword())
-                .gender(redisHashMember.getGender())
-                .age(redisHashMember.getAge())
-                .role(redisHashMember.getRole())
-                .createdAt(redisHashMember.getCreatedAt())
-                .updatedAt(redisHashMember.getUpdatedAt())
-                .build();
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(this.role.equals(Role.ADMIN)) {
@@ -125,5 +113,20 @@ public class MemberEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public static MemberEntity from(Member member) {
+        return MemberEntity.builder()
+                .id(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .password(member.getPassword())
+                .gender(member.getGender())
+                .age(member.getAge())
+                .role(member.getRole())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .deletedAt(member.getDeletedAt())
+                .build();
     }
 }
