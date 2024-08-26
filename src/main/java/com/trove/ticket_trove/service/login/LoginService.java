@@ -5,6 +5,7 @@ import com.trove.ticket_trove.dto.member.request.MemberAdminSignupRequest;
 import com.trove.ticket_trove.dto.member.request.MemberDeleteRequest;
 import com.trove.ticket_trove.dto.member.request.MemberLoginRequest;
 import com.trove.ticket_trove.dto.member.request.MemberSignupRequest;
+import com.trove.ticket_trove.dto.member.response.Member;
 import com.trove.ticket_trove.exception.ClientErrorException;
 import com.trove.ticket_trove.exception.member.MemberExistsException;
 import com.trove.ticket_trove.exception.member.MemberNotFoundException;
@@ -12,6 +13,7 @@ import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import com.trove.ticket_trove.model.user.Role;
 import com.trove.ticket_trove.service.jwt.JwtService;
+import com.trove.ticket_trove.service.redis.MemberRedisService;
 import com.trove.ticket_trove.util.CookieUtilService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ public class LoginService implements UserDetailsService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtService jwtService;
     private final CookieUtilService cookieUtilService;
+    private final MemberRedisService memberRedisService;
 
     //유저회원가입
     @Transactional
@@ -69,7 +72,9 @@ public class LoginService implements UserDetailsService {
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {
 
+
         var memberEntity = getMemberEntity(request.email());
+
         validatePassword(memberEntity, request.password());
 
         var accessToken = jwtService.generateToken(memberEntity);
@@ -124,8 +129,14 @@ public class LoginService implements UserDetailsService {
     }
 
     private MemberEntity getMemberEntity(String email) {
-        return memberRepository
+        var member = memberRedisService.get(email);
+        if(member != null) {
+            return MemberEntity.from(member);
+        }
+        MemberEntity memberEntity = memberRepository
                 .findByEmail(email)
                 .orElseThrow(MemberNotFoundException::new);
+        memberRedisService.save(Member.from(memberEntity));
+        return memberEntity;
     }
 }

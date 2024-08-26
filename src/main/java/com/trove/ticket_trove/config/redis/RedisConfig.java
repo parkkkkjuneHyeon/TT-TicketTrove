@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.trove.ticket_trove.dto.concert.response.ConcertDetailsInfoResponse;
+import com.trove.ticket_trove.dto.member.response.Member;
 import com.trove.ticket_trove.dto.member.response.MemberRefreshTokenDto;
 import com.trove.ticket_trove.dto.ticket.response.TicketDetailResponse;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +87,25 @@ public class RedisConfig {
     ){
         return concertRedisTemplate(replica2ConnectionFactory);
     }
+
+    @Bean
+    RedisTemplate<String, Member> memberTemplate(
+            RedisConnectionFactory redisConnectionFactory
+    ){
+        return memberRedisTemplate(redisConnectionFactory);
+    }
+    @Bean
+    RedisTemplate<String, Member> memberReplicaTemplate(
+            RedisConnectionFactory replicaConnectionFactory
+    ){
+        return memberRedisTemplate(replicaConnectionFactory);
+    }
+    @Bean
+    RedisTemplate<String, Member> memberReplica2Template(
+            RedisConnectionFactory replica2ConnectionFactory
+    ){
+        return memberRedisTemplate(replica2ConnectionFactory);
+    }
     //generic redisTemplate
 
     @Bean
@@ -137,6 +157,22 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<ConcertDetailsInfoResponse>(objectMapper, ConcertDetailsInfoResponse.class));
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<ConcertDetailsInfoResponse>(objectMapper, ConcertDetailsInfoResponse.class));
+        return redisTemplate;
+    }
+
+    RedisTemplate<String, Member> memberRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
+        var objectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
+
+        var redisTemplate = new RedisTemplate<String, Member>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<Member>(objectMapper, Member.class));
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<Member>(objectMapper, Member.class));
         return redisTemplate;
     }
 

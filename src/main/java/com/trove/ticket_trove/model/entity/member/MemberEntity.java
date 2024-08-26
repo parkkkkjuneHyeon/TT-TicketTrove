@@ -1,5 +1,6 @@
 package com.trove.ticket_trove.model.entity.member;
 
+import com.trove.ticket_trove.dto.member.response.Member;
 import com.trove.ticket_trove.dto.member.response.MemberRefreshTokenDto;
 import com.trove.ticket_trove.model.user.Role;
 import jakarta.persistence.*;
@@ -113,5 +114,20 @@ public class MemberEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public static MemberEntity from(Member member) {
+        return MemberEntity.builder()
+                .id(member.getId())
+                .name(member.getName())
+                .email(member.getEmail())
+                .password(member.getPassword())
+                .gender(member.getGender())
+                .age(member.getAge())
+                .role(member.getRole())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .deletedAt(member.getDeletedAt())
+                .build();
     }
 }
