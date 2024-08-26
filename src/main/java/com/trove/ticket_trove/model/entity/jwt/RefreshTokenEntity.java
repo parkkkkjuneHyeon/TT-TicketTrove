@@ -27,7 +27,6 @@ public class RefreshTokenEntity {
     @PrePersist
     private void prePersist() {
         createdAt = LocalDateTime.now();
-        expirationTime = new Date().getTime() + 1000 * 60 * 24 * 7;
-//                .plusDays(7); // 7일 후 자동 만료
+        expirationTime = new Date().getTime() + 1000 * 60 * 30;
     }
 }

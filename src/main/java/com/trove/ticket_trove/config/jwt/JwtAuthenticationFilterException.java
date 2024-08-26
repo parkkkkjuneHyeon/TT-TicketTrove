@@ -2,7 +2,7 @@ package com.trove.ticket_trove.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trove.ticket_trove.dto.jwt.response.JwtErrorResponse;
-import com.trove.ticket_trove.exception.jwt.JwtAccessTokenExpireException;
+import com.trove.ticket_trove.exception.ClientErrorException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,6 +35,18 @@ public class JwtAuthenticationFilterException extends OncePerRequestFilter {
             var errorResponse = new JwtErrorResponse(
                     HttpStatus.UNAUTHORIZED,
                     "유효하지 않는 요청입니다.");
+            ObjectMapper objectMapper = new ObjectMapper();
+            String responseJson = objectMapper.writeValueAsString(errorResponse);
+            response.getWriter().write(responseJson);
+
+        }catch (ClientErrorException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+
+            var errorResponse = new JwtErrorResponse(
+                    e.getHttpStatus(),
+                    e.getMessage());
             ObjectMapper objectMapper = new ObjectMapper();
             String responseJson = objectMapper.writeValueAsString(errorResponse);
             response.getWriter().write(responseJson);

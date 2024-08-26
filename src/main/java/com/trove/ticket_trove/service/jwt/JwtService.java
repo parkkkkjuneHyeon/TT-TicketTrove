@@ -1,9 +1,11 @@
 package com.trove.ticket_trove.service.jwt;
 
+import com.trove.ticket_trove.dto.member.response.MemberRefreshTokenDto;
 import com.trove.ticket_trove.exception.jwt.JwtRefreshTokenExpireException;
 import com.trove.ticket_trove.exception.jwt.JwtRefreshTokenNotFoundException;
 import com.trove.ticket_trove.model.entity.jwt.RefreshTokenEntity;
 import com.trove.ticket_trove.model.storage.jwt.RefreshTokenRepository;
+import com.trove.ticket_trove.service.redis.RefreshTokenRedisService;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -21,11 +23,15 @@ import java.util.Date;
 public class JwtService {
     private final SecretKey key;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRedisService refreshTokenRedisService;
+
     public JwtService(
             @Value("${jwt.secret-key}") String key,
-            RefreshTokenRepository refreshTokenRepository) {
+            RefreshTokenRepository refreshTokenRepository,
+            RefreshTokenRedisService refreshTokenRedisService) {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(key));
         this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshTokenRedisService = refreshTokenRedisService;
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -35,6 +41,7 @@ public class JwtService {
                 userDetails.getUsername(),
                 expire, now);
     }
+
     @Transactional
     public String generateRefreshToken(UserDetails userDetails) {
         var now = new Date();
@@ -47,32 +54,58 @@ public class JwtService {
                 .build();
 
         refreshTokenRepository.save(refreshTokenEntity);
+        refreshTokenRedisService.save(
+                MemberRefreshTokenDto.from(
+                        userDetails.getUsername(),
+                        refreshToken)
+        );
         return refreshToken;
     }
 
+    @Transactional
+    public void deleteRefreshToken(String refreshToken) {
+        refreshTokenRedisService.delete(getEmail(refreshToken));
+        refreshTokenRepository.deleteByRefreshToken(refreshToken);
+    }
+
+    @Transactional
     public boolean validationRefreshToken(String refreshToken) {
         if (refreshToken == null)
             return false;
+        //리프레쉬 토큰 존재하는지 체크
+        checkExistsRefreshToken(refreshToken);
+        //만료 체크
         if(!checkExpireToken(refreshToken)) {
+            deleteRefreshToken(refreshToken);
             throw new JwtRefreshTokenExpireException();
         }
-        checkExistsRefreshToken(refreshToken);
         return true;
     }
 
     private void checkExistsRefreshToken(String refreshToken) {
-        refreshTokenRepository
+
+        String email = getEmail(refreshToken);
+        var memberRefreshTokenDto = refreshTokenRedisService
+                .get(email);
+
+        if (memberRefreshTokenDto != null)
+            return;
+
+        var refreshEntity = refreshTokenRepository
                 .findByRefreshToken(refreshToken)
                 .orElseThrow(JwtRefreshTokenNotFoundException::new);
+        refreshTokenRedisService
+                .save(MemberRefreshTokenDto.from(
+                        email,
+                        refreshEntity.getRefreshToken()));
     }
-    //3분마다 만료된 토큰은 삭제
-    @Scheduled(cron = "0 */3 * * * ?")
+    //5분마다 만료된 토큰은 삭제
+    @Scheduled(cron = "0 */5 * * * ?")
     public void cleanExpiredTokens() {
         refreshTokenRepository.deleteExpiredToken(new Date().getTime());
     }
 
-
-    public String getUsername(String accessToken) {
+    public String getEmail(String accessToken) {
         return getSubject(accessToken);
     }
 
@@ -91,6 +124,9 @@ public class JwtService {
 
     private String getSubject(String accessToken) {
         try {
+            if (accessToken == null)
+                throw new JwtRefreshTokenNotFoundException();
+
             return Jwts.parser()
                     .verifyWith(key)
                     .build()
@@ -121,6 +157,5 @@ public class JwtService {
         }catch (JwtException e) {
             return false;
         }
-
     }
 }

@@ -21,11 +21,10 @@ spring:
     replica2:
       port: ${REDIS_REPLICA2_PORT:6381}
       host: ${REDIS_REPLICA2_HOST:127.0.0.1}
-
 logging:
   level:
     org.hibernate.orm.jdbc.bind: TRACE
-    root: info
+
 jwt:
   secret-key: ${JWT_SECRET_KEY:NjRLWTY0cVU3S0NjN0oyMDY0MlU2N2lVN0p5ZzY0dWtDZz09}
 server:

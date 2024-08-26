@@ -1,6 +1,7 @@
 package com.trove.ticket_trove.exception.member;
 
 import com.trove.ticket_trove.exception.ClientErrorException;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 public class MemberExistsException extends ClientErrorException {
