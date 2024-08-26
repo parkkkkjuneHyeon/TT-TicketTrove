@@ -41,6 +41,14 @@ public class ConcertController {
         return ResponseEntity.ok(concertResponses);
     }
 
+    // 첫 화면 예매임박 콘서트리스트
+    @GetMapping("/imminent")
+    public ResponseEntity<List<ConcertInfoResponse>> imminentConcert(
+    ) {
+        var concertResponses = concertService.getImminentConcerts();
+        return ResponseEntity.ok(concertResponses);
+    }
+
     //콘서트 단건 조회
     @GetMapping("/{concertId}")
     public ResponseEntity<ConcertDetailsInfoResponse> getConcert(

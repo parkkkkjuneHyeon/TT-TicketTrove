@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Service
@@ -35,6 +36,7 @@ public class TicketRedisService {
         ticketTemplate.opsForHash().put(key(ticketEntity.getConcertId().getId()),
                 subKey(ticketEntity),
                 TicketDetailResponse.from(ticketEntity));
+        ticketTemplate.expire(key(ticketEntity.getConcertId().getId()), Duration.ofMinutes(180L));
     }
 
     public Map<Object, Object> getTicketList(String key){

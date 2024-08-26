@@ -20,10 +20,12 @@ import com.trove.ticket_trove.service.redis.ConcertRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class ConcertService {
         //공연장 저장
         var concertEntity = concertRepository.save(concert);
         //공연장 등급 저장
-        var seatGradeInfoResponseList = seatGradeCreateRequests.stream()
+        seatGradeCreateRequests.stream()
                 .map(seatGradeCreateRequest -> {
                     var seatGradeEntity = SeatGradeEntity.from(
                             concertEntity,
@@ -64,7 +66,6 @@ public class ConcertService {
 
                     return SeatGradeInfoResponse.from(seatGradeEntity);
                 }).toList();
-        concertRedisService.save(ConcertDetailsInfoResponse.from(concertEntity, seatGradeInfoResponseList));
     }
 
     @Transactional
@@ -118,37 +119,59 @@ public class ConcertService {
         if (!ObjectUtils.isEmpty(page) && !ObjectUtils.isEmpty(size))
             pageable = PageRequest.of(page, size);
 
-        List<ConcertInfoResponse> concertLists
-                = concertRedisService.getAllConcertInfo().stream().map(
-                detailInfo -> new ConcertInfoResponse(
-                            detailInfo.concertId(),
-                            detailInfo.concertName(),
-                            detailInfo.performer(),
-                            detailInfo.showStart(),
-                            detailInfo.showEnd(),
-                            detailInfo.ticketingTime())
-                ).toList();
-        if(!ObjectUtils.isEmpty(concertLists)){
-            return concertLists;
-        }
+//        List<ConcertInfoResponse> concertLists
+//                = concertRedisService.getAllConcertInfo().stream().map(
+//                detailInfo -> new ConcertInfoResponse(
+//                            detailInfo.concertId(),
+//                            detailInfo.concertName(),
+//                            detailInfo.performer(),
+//                            detailInfo.showStart(),
+//                            detailInfo.showEnd(),
+//                            detailInfo.ticketingTime())
+//                ).toList();
+//        if(!ObjectUtils.isEmpty(concertLists)){
+//            return concertLists;
+//        }
 
         return concertRepository.findAllByOrderByShowStartAsc(pageable).stream()
                 .map(ConcertInfoResponse::from).toList();
     }
 
+    //예매 임박 콘서트들 조회
+    public List<ConcertInfoResponse> getImminentConcerts() {
+
+        var something = concertRedisService.getConcertListForReservation();
+        if(something == null) {
+            makeRedisDataWhenStartApplication();
+        }
+
+        return concertRedisService.getConcertListForReservation().stream().map(
+                detailInfo -> new ConcertInfoResponse(
+                        detailInfo.concertId(),
+                        detailInfo.concertName(),
+                        detailInfo.performer(),
+                        detailInfo.showStart(),
+                        detailInfo.showEnd(),
+                        detailInfo.ticketingTime())
+        ).toList();
+    }
+
     //콘서트 단건 조회
-    public ConcertDetailsInfoResponse searchConcert(Long id) {
-        var concertInfo = concertRedisService.getConcertInfo(id);
+    public ConcertDetailsInfoResponse searchConcert(Long concertId) {
+        var concertInfo = concertRedisService.getConcertInfo(concertId);
         if(concertInfo != null){
             return concertInfo;
         }
-        var concertEntity = getConcertEntity(id);
+
+        concertRedisService.deleteConcertInfo(concertId);
+
+        var concertEntity = getConcertEntity(concertId);
         var seatGrades = seatGradeRepository
                 .findByConcertIdOrderByPriceDesc(concertEntity)
                 .stream().map(SeatGradeInfoResponse::from)
                 .toList();
 
-        return ConcertDetailsInfoResponse.from(concertEntity, seatGrades);
+        return concertRedisService.save(ConcertDetailsInfoResponse.from(concertEntity, seatGrades));
     }
 
     @Transactional
@@ -158,10 +181,6 @@ public class ConcertService {
         concertRedisService.deleteConcertInfo(id);
         seatGradeRepository.deleteAllByConcertId(concertEntity);
         concertRepository.delete(concertEntity);
-    }
-    @Transactional
-    public void deleteSeatGrade() {
-
     }
 
     //등급 테이블 업데이트
@@ -258,4 +277,18 @@ public class ConcertService {
                     throw new ConcertExistsException(concertName, performer, showStart);
         });
     }
+
+    @Scheduled(fixedRate = 10800000)
+    public void makeRedisDataWhenStartApplication(){
+        var now = LocalDateTime.now();
+        List<ConcertEntity> concertList = concertRepository.findConcertEntityOrderByTicketingTimeAsc(now);
+
+        concertList.forEach(concertEntity -> {
+            List<SeatGradeInfoResponse> seatGradeEntityList =
+                    seatGradeRepository
+                            .findByConcertId(concertEntity).stream().map(SeatGradeInfoResponse::from).toList();
+            concertRedisService.saveList(ConcertDetailsInfoResponse.from(concertEntity, seatGradeEntityList));
+        });
+    }
+
 }

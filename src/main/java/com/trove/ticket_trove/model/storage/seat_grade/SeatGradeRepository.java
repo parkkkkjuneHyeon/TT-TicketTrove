@@ -1,5 +1,6 @@
 package com.trove.ticket_trove.model.storage.seat_grade;
 
+import com.trove.ticket_trove.dto.seatGrade.response.SeatGradeInfoResponse;
 import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,6 @@ public interface SeatGradeRepository extends JpaRepository<SeatGradeEntity, Long
     Optional<SeatGradeEntity> findByConcertIdAndGradeAndPrice(ConcertEntity concertEntity, String grade, Integer price);
 
     void deleteByConcertIdAndGradeAndPrice(ConcertEntity concertEntity, String grade, Integer price);
+
+    List<SeatGradeEntity> findByConcertId(ConcertEntity concertEntity);
 }

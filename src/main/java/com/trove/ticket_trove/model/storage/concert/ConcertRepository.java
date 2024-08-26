@@ -28,4 +28,8 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
     Optional<ConcertEntity> findByDeletedId(@Param("concertId") Long concertId);
 
     List<ConcertEntity> findAllByOrderByShowStartAsc(Pageable pageable);
+
+
+    @Query(value = "SELECT * FROM concert WHERE ticketing_time BETWEEN :now - INTERVAL 180 MINUTE AND :now + INTERVAL 30 MINUTE" , nativeQuery = true)
+    List<ConcertEntity> findConcertEntityOrderByTicketingTimeAsc(@Param("now") LocalDateTime now);
 }
