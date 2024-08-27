@@ -14,7 +14,6 @@ import java.util.Objects;
 public class MemberRedisService {
     private final RedisTemplate<String, Member> memberTemplate;
     private final RedisTemplate<String, Member> memberReplicaTemplate;
-    private final RedisTemplate<String, Member> memberReplica2Template;
 
     public String key(String email) {
         return "Email:" + email;

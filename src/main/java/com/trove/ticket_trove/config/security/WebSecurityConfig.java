@@ -51,6 +51,7 @@ public class WebSecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(requests ->
                     requests.requestMatchers(HttpMethod.POST,
+                            "/**",
                             "api/v1/authentication/login",
                             "api/v1/authentication/signup",
                             "api/v1/authentication/admin-signup")
