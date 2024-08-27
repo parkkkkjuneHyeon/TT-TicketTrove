@@ -48,5 +48,8 @@ jwt:
   secret-key: ${JWT_SECRET_KEY:NjRLWTY0cVU3S0NjN0oyMDY0MlU2N2lVN0p5ZzY0dWtDZz09}
 server:
   port: ${SERVER_PORT:8001}
+front:
+  host: ${FRONT_HOST:localhost}
+  port: ${FRONT_PORT:3000}
 
 

@@ -5,6 +5,7 @@ import com.trove.ticket_trove.service.auth.JwtAuthenticationFilter;
 import com.trove.ticket_trove.service.auth.JwtAuthenticationFilterException;
 import com.trove.ticket_trove.model.user.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,7 +31,14 @@ public class WebSecurityConfig {
     private final JwtAuthenticationFilterException jwtAuthenticationFilterException;
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${front.host}")
+            String frontHost,
+            @Value("${front.port}")
+            Integer frontPort) {
+        System.out.println("front host: " + frontHost);
+        System.out.println("front port: " + frontPort);
+        System.out.println("http://%s:%d".formatted(frontHost, frontPort));
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOrigins(
                 List.of("http://127.0.0.1:3000","http://localhost:3000"));
