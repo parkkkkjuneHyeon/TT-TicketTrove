@@ -1,4 +1,4 @@
-package com.trove.ticket_trove.service.login;
+package com.trove.ticket_trove.service.auth;
 
 import com.trove.ticket_trove.dto.jwt.response.JwtLoginResponse;
 import com.trove.ticket_trove.dto.member.request.MemberAdminSignupRequest;
@@ -12,7 +12,6 @@ import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import com.trove.ticket_trove.model.user.Role;
-import com.trove.ticket_trove.service.jwt.JwtService;
 import com.trove.ticket_trove.service.redis.MemberRedisService;
 import com.trove.ticket_trove.util.CookieUtilService;
 import jakarta.servlet.http.Cookie;

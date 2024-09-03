@@ -1,7 +1,5 @@
-package com.trove.ticket_trove.config.jwt;
+package com.trove.ticket_trove.service.auth;
 
-import com.trove.ticket_trove.service.jwt.JwtService;
-import com.trove.ticket_trove.service.login.LoginService;
 import com.trove.ticket_trove.util.CookieUtilService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

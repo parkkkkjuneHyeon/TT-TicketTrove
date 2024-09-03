@@ -1,8 +1,10 @@
 spring:
+  application:
+    name: ticket_trove
   datasource:
     username: ${ROOT:root}
     password: ${ROOT_PASSWORD:1234}
-    url: jdbc:mysql://${TICKET_MYSQL_HOST:localhost}:4306/ticket_trove?rewriteBatchedStatements=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${TICKET_MYSQL_HOST:localhost}:3306/ticket_trove?rewriteBatchedStatements=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -21,6 +23,23 @@ spring:
     replica2:
       port: ${REDIS_REPLICA2_PORT:6381}
       host: ${REDIS_REPLICA2_HOST:127.0.0.1}
+
+management:
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, metrics, health, info, conditions
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: TRACE

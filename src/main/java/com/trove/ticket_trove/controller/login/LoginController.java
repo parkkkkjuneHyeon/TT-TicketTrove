@@ -5,7 +5,7 @@ import com.trove.ticket_trove.dto.member.request.MemberAdminSignupRequest;
 import com.trove.ticket_trove.dto.member.request.MemberDeleteRequest;
 import com.trove.ticket_trove.dto.member.request.MemberLoginRequest;
 import com.trove.ticket_trove.dto.member.request.MemberSignupRequest;
-import com.trove.ticket_trove.service.login.LoginService;
+import com.trove.ticket_trove.service.auth.LoginService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.trove.ticket_trove.service.jwt;
+package com.trove.ticket_trove.service.auth;
 
 import com.trove.ticket_trove.dto.member.response.MemberRefreshTokenDto;
 import com.trove.ticket_trove.exception.jwt.JwtRefreshTokenExpireException;

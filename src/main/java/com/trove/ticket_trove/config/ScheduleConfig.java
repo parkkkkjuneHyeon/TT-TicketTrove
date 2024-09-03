@@ -1,4 +1,4 @@
-package com.trove.ticket_trove.config.schedule;
+package com.trove.ticket_trove.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;

@@ -1,14 +1,16 @@
-package com.trove.ticket_trove.config.security;
+package com.trove.ticket_trove.config;
 
 
-import com.trove.ticket_trove.config.jwt.JwtAuthenticationFilter;
-import com.trove.ticket_trove.config.jwt.JwtAuthenticationFilterException;
+import com.trove.ticket_trove.service.auth.JwtAuthenticationFilter;
+import com.trove.ticket_trove.service.auth.JwtAuthenticationFilterException;
 import com.trove.ticket_trove.model.user.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,17 +23,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationFilterException jwtAuthenticationFilterException;
-
-    public WebSecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            JwtAuthenticationFilterException jwtAuthenticationFilterException) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.jwtAuthenticationFilterException = jwtAuthenticationFilterException;
-    }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -52,11 +48,14 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(requests ->
                     requests.requestMatchers(HttpMethod.POST,
                             "/**",
+                            "/actuator/**",
                             "api/v1/authentication/login",
                             "api/v1/authentication/signup",
                             "api/v1/authentication/admin-signup")
                             .permitAll()
                             .requestMatchers(HttpMethod.GET,
+                                    "/**",
+                                    "/actuator/**",
                                     "api/v1/concert",
                                     "api/v1/concert/**")
                             .permitAll()

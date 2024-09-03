@@ -1,4 +1,4 @@
-package com.trove.ticket_trove.config.redis;
+package com.trove.ticket_trove.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,9 +22,17 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 
 @Configuration
-@RequiredArgsConstructor
 @Slf4j
 public class RedisConfig {
+
+    private final ObjectMapper redisObjectMapper;
+
+    public RedisConfig() {
+        this.redisObjectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
+    }
 
     @Bean
     RedisConnectionFactory redisConnectionFactory(
@@ -106,73 +114,46 @@ public class RedisConfig {
     ){
         return memberRedisTemplate(replica2ConnectionFactory);
     }
-    //generic redisTemplate
 
+    //generic redisTemplate
     @Bean
     RedisTemplate<String, MemberRefreshTokenDto> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        //기본 ObjectMapper를 사용 할 경우 시간입력에서 오류가 남
-        var objectMapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
-
         var redisTemplate = new RedisTemplate<String, MemberRefreshTokenDto>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(objectMapper, MemberRefreshTokenDto.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, MemberRefreshTokenDto.class));
         return redisTemplate;
 
     }
 
-
-
     //ticketEntity redisTemplate
-
     RedisTemplate<String, TicketDetailResponse> ticketRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        //기본 ObjectMapper를 사용 할 경우 시간입력에서 오류가 남
-        var objectMapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
-
         var redisTemplate = new RedisTemplate<String, TicketDetailResponse>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<TicketDetailResponse>(objectMapper, TicketDetailResponse.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, TicketDetailResponse.class));
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<TicketDetailResponse>(objectMapper, TicketDetailResponse.class));
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, TicketDetailResponse.class));
         return redisTemplate;
     }
 
     RedisTemplate<String, ConcertDetailsInfoResponse> concertRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-
-        var objectMapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
-
         var redisTemplate = new RedisTemplate<String, ConcertDetailsInfoResponse>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<ConcertDetailsInfoResponse>(objectMapper, ConcertDetailsInfoResponse.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, ConcertDetailsInfoResponse.class));
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<ConcertDetailsInfoResponse>(objectMapper, ConcertDetailsInfoResponse.class));
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, ConcertDetailsInfoResponse.class));
         return redisTemplate;
     }
 
     RedisTemplate<String, Member> memberRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-
-        var objectMapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
-
         var redisTemplate = new RedisTemplate<String, Member>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<Member>(objectMapper, Member.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, Member.class));
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<Member>(objectMapper, Member.class));
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(redisObjectMapper, Member.class));
         return redisTemplate;
     }
 

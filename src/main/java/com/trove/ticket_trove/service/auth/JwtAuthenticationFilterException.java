@@ -1,4 +1,4 @@
-package com.trove.ticket_trove.config.jwt;
+package com.trove.ticket_trove.service.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trove.ticket_trove.dto.jwt.response.JwtErrorResponse;
