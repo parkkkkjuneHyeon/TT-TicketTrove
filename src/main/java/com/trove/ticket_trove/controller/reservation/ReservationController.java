@@ -8,7 +8,8 @@ import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
-import com.trove.ticket_trove.service.reservation.ReservationService;
+import com.trove.ticket_trove.service.reservation.ReservationReadService;
+import com.trove.ticket_trove.service.reservation.ReservationWriteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,10 +20,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reservation")
 public class ReservationController {
-    private final ReservationService reservationService;
+    private final ReservationReadService reservationReadService;
+    private final ReservationWriteService reservationWriteService;
 
-    public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
+    public ReservationController(
+            ReservationReadService reservationReadService,
+            ReservationWriteService reservationWriteService) {
+        this.reservationReadService = reservationReadService;
+        this.reservationWriteService = reservationWriteService;
     }
 
     //티켓 예매
@@ -33,7 +38,7 @@ public class ReservationController {
             TicketCreateRequest request
     ) {
         var memberEntity = (MemberEntity) authentication.getPrincipal();
-        var ticketResponse = reservationService.reserve(
+        var ticketResponse = reservationWriteService.reserve(
                 memberEntity,
                 request);
         return ResponseEntity.ok(ticketResponse);
@@ -45,7 +50,7 @@ public class ReservationController {
             @RequestParam String grade,
             @RequestParam Integer seatNumber
     ){
-        var seatCheckResponse = reservationService
+        var seatCheckResponse = reservationReadService
                 .seatCheck(concertId, grade.toUpperCase(), seatNumber);
         return ResponseEntity.ok(seatCheckResponse);
     }
@@ -59,7 +64,7 @@ public class ReservationController {
     ) {
         var memberEntity = getMemberEntity(authentication);
         var memberTicketsResponse =
-                reservationService.searchTickets(
+                reservationReadService.searchTickets(
                        memberEntity , page, size);
         return ResponseEntity.ok(memberTicketsResponse);
     }
@@ -71,7 +76,7 @@ public class ReservationController {
             TicketSearchRequest request
     ) {
         var memberEntity = getMemberEntity(authentication);
-        var ticketInfoResponse = reservationService.searchTicket(
+        var ticketInfoResponse = reservationReadService.searchTicket(
                 memberEntity,
                 request);
         return ResponseEntity.ok(ticketInfoResponse);
@@ -84,7 +89,7 @@ public class ReservationController {
             @RequestParam(defaultValue = "0", required = false) Integer page,
             @RequestParam(defaultValue = "3", required = false) Integer size
     ) {
-        var concertTicketsResponse = reservationService
+        var concertTicketsResponse = reservationReadService
                 .searchConcertTickets(concertId, page, size);
         return ResponseEntity.ok(concertTicketsResponse);
     }
@@ -96,7 +101,7 @@ public class ReservationController {
             TicketDeleteRequest request
     ) {
         var memberEntity = getMemberEntity(authentication);
-        reservationService.cancelTicket(
+        reservationWriteService.cancelTicket(
                 memberEntity,
                 request);
         return ResponseEntity.ok(HttpStatus.OK);
