@@ -12,7 +12,9 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "refresh_token")
+@Table(name = "refresh_token", indexes = {
+        @Index(name = "idx_refreshtoken", columnList = "token"),
+})
 public class RefreshTokenEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -22,7 +22,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final LoginService loginService;
+    private final LoginReadService loginReadService;
     private final CookieUtilService cookieUtilService;
 
     @Override
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 email = jwtService.getEmail(refreshToken);
 
                 log.info("Refresh token: {}", refreshToken);
-                userDetails = loginService.loadUserByUsername(email);
+                userDetails = loginReadService.loadUserByUsername(email);
                 accessToken = jwtService.generateToken(userDetails);
 
                 Cookie accessTokenCookie = cookieUtilService.createCookie(
@@ -58,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 setAuthentication(userDetails);
             }else {
                 email = jwtService.getEmail(accessToken);
-                userDetails = loginService.loadUserByUsername(email);
+                userDetails = loginReadService.loadUserByUsername(email);
                 setAuthentication(userDetails);
             }
         }

@@ -5,20 +5,27 @@ import com.trove.ticket_trove.dto.member.request.MemberAdminSignupRequest;
 import com.trove.ticket_trove.dto.member.request.MemberDeleteRequest;
 import com.trove.ticket_trove.dto.member.request.MemberLoginRequest;
 import com.trove.ticket_trove.dto.member.request.MemberSignupRequest;
-import com.trove.ticket_trove.service.auth.LoginService;
+import com.trove.ticket_trove.service.auth.LoginReadService;
+import com.trove.ticket_trove.service.auth.LoginWriteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/authentication")
+@Slf4j
 public class LoginController {
-    private final LoginService loginService;
+    private final LoginReadService loginReadService;
+    private final LoginWriteService loginWriteService;
 
-    public LoginController(LoginService loginService) {
-        this.loginService = loginService;
+    public LoginController(
+            LoginReadService loginReadService,
+            LoginWriteService loginWriteService) {
+        this.loginReadService = loginReadService;
+        this.loginWriteService = loginWriteService;
     }
 
     @PostMapping("/login")
@@ -27,7 +34,7 @@ public class LoginController {
             MemberLoginRequest request,
             HttpServletRequest httpServletRequest,
             HttpServletResponse httpServletResponse) {
-        var loginResponse = loginService
+        var loginResponse = loginReadService
                 .authenticate(
                         request,
                         httpServletRequest,
@@ -40,20 +47,22 @@ public class LoginController {
     public ResponseEntity<HttpStatus> adminSignup(
             @RequestBody
             MemberAdminSignupRequest request) {
-        loginService.adminSignup(request);
+        loginWriteService.adminSignup(request);
         return ResponseEntity.ok(HttpStatus.OK);
     }
+
     @GetMapping("/logout")
     public ResponseEntity<HttpStatus> logout(
             HttpServletRequest httpServletRequest) {
-        loginService.logout(httpServletRequest);
+        loginReadService.logout(httpServletRequest);
         return ResponseEntity.ok(HttpStatus.OK);
     }
+
     @PostMapping("/signup")
     public ResponseEntity<HttpStatus> signup(
             @RequestBody
             MemberSignupRequest request) {
-        loginService.signup(request);
+        loginWriteService.signup(request);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
@@ -63,7 +72,9 @@ public class LoginController {
             @RequestBody
             MemberDeleteRequest request
     ) {
-        loginService.deleteMember(request);
+
+        log.info("들어옴.");
+        loginWriteService.deleteMember(request);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 }

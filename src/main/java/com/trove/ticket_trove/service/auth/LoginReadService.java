@@ -12,6 +12,7 @@ import com.trove.ticket_trove.exception.member.MemberNotFoundException;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.storage.member.MemberRepository;
 import com.trove.ticket_trove.model.user.Role;
+import com.trove.ticket_trove.service.auth.validation.LoginValidation;
 import com.trove.ticket_trove.service.redis.MemberRedisService;
 import com.trove.ticket_trove.util.CookieUtilService;
 import jakarta.servlet.http.Cookie;
@@ -28,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class LoginService implements UserDetailsService {
+public class LoginReadService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -36,45 +37,18 @@ public class LoginService implements UserDetailsService {
     private final CookieUtilService cookieUtilService;
     private final MemberRedisService memberRedisService;
 
-    //유저회원가입
-    @Transactional
-    public void signup(MemberSignupRequest request) {
-        validateExistsEmail(request.email());
-        var memberEntity = MemberEntity.from(
-                request.name(),
-                request.email(),
-                bCryptPasswordEncoder.encode(request.password()),
-                request.gender(),
-                request.age(),
-                Role.USER);
-        memberRepository.save(memberEntity);
-    }
-
-    //관리자회원가입
-    @Transactional
-    public void adminSignup(
-            MemberAdminSignupRequest request) {
-        validateExistsEmail(request.email());
-        var memberEntity = MemberEntity.from(
-                request.name(),
-                request.email(),
-                bCryptPasswordEncoder.encode(request.password()),
-                request.gender(),
-                request.age(),
-                Role.ADMIN);
-        memberRepository.save(memberEntity);
-    }
-
     //로그인
     public JwtLoginResponse authenticate(
             MemberLoginRequest request,
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {
 
-
         var memberEntity = getMemberEntity(request.email());
 
-        validatePassword(memberEntity, request.password());
+        LoginValidation.validatePassword(
+                memberEntity,
+                request.password(),
+                bCryptPasswordEncoder);
 
         var accessToken = jwtService.generateToken(memberEntity);
         var refreshToken = cookieUtilService
@@ -101,30 +75,9 @@ public class LoginService implements UserDetailsService {
         jwtService.deleteRefreshToken(refreshToken);
     }
 
-    @Transactional
-    public void deleteMember(MemberDeleteRequest request) {
-        memberRepository.deleteByEmail(request.email());
-    }
-
-    private void validatePassword(
-            MemberEntity memberEntity,
-            String password) {
-        if(!bCryptPasswordEncoder
-                .matches(password, memberEntity.getPassword())) {
-            throw new ClientErrorException(
-                    HttpStatus.BAD_REQUEST, "아이디나 비밀번호가 맞지 않습니다.");
-        }
-    }
-
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return getMemberEntity(email);
-    }
-
-    private void validateExistsEmail(String email) {
-        memberRepository.findByEmail(email).ifPresent(m -> {
-                throw new MemberExistsException(email);
-        });
     }
 
     private MemberEntity getMemberEntity(String email) {
