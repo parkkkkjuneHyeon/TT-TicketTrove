@@ -1,7 +1,6 @@
 package com.trove.ticket_trove.service.redis;
 
 import com.trove.ticket_trove.dto.concert.response.ConcertDetailsInfoResponse;
-import com.trove.ticket_trove.service.concert.ConcertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

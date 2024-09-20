@@ -5,7 +5,8 @@ import com.trove.ticket_trove.dto.concert.request.ConcertUpdateRequest;
 import com.trove.ticket_trove.dto.concert.response.ConcertDetailsInfoResponse;
 import com.trove.ticket_trove.dto.concert.response.ConcertInfoResponse;
 import com.trove.ticket_trove.dto.concert.response.ConcertUpdateResponse;
-import com.trove.ticket_trove.service.concert.ConcertService;
+import com.trove.ticket_trove.service.concert.ConcertReadService;
+import com.trove.ticket_trove.service.concert.ConcertWriteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,18 +16,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/concert")
 public class ConcertController {
-    private final ConcertService concertService;
+    private final ConcertReadService concertReadService;
+    private final ConcertWriteService concertWriteService;
 
-    public ConcertController(ConcertService concertService) {
-        this.concertService = concertService;
+    public ConcertController(
+            ConcertReadService concertReadService,
+            ConcertWriteService concertWriteService) {
+        this.concertReadService = concertReadService;
+        this.concertWriteService = concertWriteService;
     }
+
     //콘서트 생성
     @PostMapping
     public ResponseEntity<HttpStatus> addConcert(
             @RequestBody
             ConcertCreateRequest request
     ) {
-        concertService.addConcert(request);
+        concertWriteService.addConcert(request);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
@@ -37,7 +43,7 @@ public class ConcertController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size
     ) {
-        var concertResponses = concertService.searchConcerts(page, size);
+        var concertResponses = concertReadService.searchConcerts(page, size);
         return ResponseEntity.ok(concertResponses);
     }
 
@@ -45,7 +51,7 @@ public class ConcertController {
     @GetMapping("/imminent")
     public ResponseEntity<List<ConcertInfoResponse>> imminentConcert(
     ) {
-        var concertResponses = concertService.getImminentConcerts();
+        var concertResponses = concertReadService.getImminentConcerts();
         return ResponseEntity.ok(concertResponses);
     }
 
@@ -53,7 +59,7 @@ public class ConcertController {
     @GetMapping("/{concertId}")
     public ResponseEntity<ConcertDetailsInfoResponse> getConcert(
             @PathVariable Long concertId) {
-        var concertDetailsResponse = concertService.searchConcert(concertId);
+        var concertDetailsResponse = concertReadService.searchConcert(concertId);
         return ResponseEntity.ok(concertDetailsResponse);
     }
 
@@ -63,7 +69,7 @@ public class ConcertController {
             @RequestBody
             ConcertUpdateRequest request
     ){
-        var concertUpdateResp = concertService.updateConcert(request);
+        var concertUpdateResp = concertWriteService.updateConcert(request);
 
         return ResponseEntity.ok(concertUpdateResp);
     }
@@ -73,7 +79,7 @@ public class ConcertController {
     public ResponseEntity<HttpStatus> deleteConcert(
             @PathVariable Long concertId
     ) {
-        concertService.deleteConcert(concertId);
+        concertWriteService.deleteConcert(concertId);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

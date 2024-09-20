@@ -7,7 +7,6 @@ import com.trove.ticket_trove.dto.ticket.response.TicketDetailResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketInfoResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketReservationResponse;
 import com.trove.ticket_trove.dto.ticket.response.TicketSeatCheckResponse;
-import com.trove.ticket_trove.exception.concert.ConcertNotFoundException;
 import com.trove.ticket_trove.exception.seatgrade.SeatGradeNotFoundException;
 import com.trove.ticket_trove.exception.seatgrade.SeatNumberValidationException;
 import com.trove.ticket_trove.exception.ticket.TicketExistsException;
@@ -16,11 +15,9 @@ import com.trove.ticket_trove.model.entity.concert.ConcertEntity;
 import com.trove.ticket_trove.model.entity.member.MemberEntity;
 import com.trove.ticket_trove.model.entity.seat_grade.SeatGradeEntity;
 import com.trove.ticket_trove.model.entity.ticket.TicketEntity;
-import com.trove.ticket_trove.model.storage.concert.ConcertRepository;
 import com.trove.ticket_trove.model.storage.seat_grade.SeatGradeRepository;
 import com.trove.ticket_trove.model.storage.ticket.TicketRepository;
-import com.trove.ticket_trove.service.concert.ConcertService;
-import com.trove.ticket_trove.service.redis.ConcertRedisService;
+import com.trove.ticket_trove.service.concert.ConcertReadService;
 import com.trove.ticket_trove.service.redis.TicketRedisService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +35,7 @@ public class ReservationService {
     private final TicketRepository ticketRepository;
     private final SeatGradeRepository seatGradeRepository;
     private final TicketRedisService ticketRedisService;
-    private final ConcertService concertService;
+    private final ConcertReadService concertReadService;
 
     //티켓 예매
     @Transactional
@@ -242,7 +239,7 @@ public class ReservationService {
 
     private ConcertEntity getConcertEntity(Long concertId) {
 
-         return ConcertEntity.from(concertService.searchConcert(concertId));
+         return ConcertEntity.from(concertReadService.searchConcert(concertId));
     }
 
     //TODO

@@ -1,6 +1,6 @@
 package com.trove.ticket_trove;
 
-import com.trove.ticket_trove.service.concert.ConcertService;
+import com.trove.ticket_trove.service.concert.ConcertReadService;
 import com.trove.ticket_trove.service.redis.ConcertRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @RequiredArgsConstructor
 @EnableScheduling
 public class TicketTroveApplication implements ApplicationRunner {
-    private final ConcertService concertService;
+    private final ConcertReadService concertReadService;
     private final ConcertRedisService concertRedisService;
 
     public static void main(String[] args) {
@@ -22,7 +22,7 @@ public class TicketTroveApplication implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        concertService.makeRedisDataWhenStartApplication();
+        concertReadService.makeRedisDataWhenStartApplication();
         System.out.println(concertRedisService.printList());
 
     }
