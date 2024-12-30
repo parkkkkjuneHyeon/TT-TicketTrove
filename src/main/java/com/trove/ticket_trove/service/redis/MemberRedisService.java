@@ -32,7 +32,7 @@ public class MemberRedisService {
     }
 
     public void delete(String email) {
-        if(memberTemplate.delete(key(email)))
+        if(Boolean.TRUE.equals(memberTemplate.delete(key(email))))
             log.info("Deleted email: ", email);
         else
             throw new MemberNotFoundException(
