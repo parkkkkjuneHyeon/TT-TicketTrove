@@ -35,12 +35,14 @@ public class WebSecurityConfig {
             String frontHost,
             @Value("${front.port}")
             Integer frontPort) {
-        System.out.println("front host: " + frontHost);
-        System.out.println("front port: " + frontPort);
-        System.out.println("http://%s:%d".formatted(frontHost, frontPort));
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOrigins(
-                List.of("http://127.0.0.1:3000","http://localhost:3000"));
+                List.of(
+                        "http://127.0.0.1:3000",
+                        "http://localhost:3000",
+                        "http://%s:%s".formatted(frontHost, frontPort)
+                )
+        );
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowedMethods(List.of("GET","POST","PATCH","DELETE"));
         corsConfiguration.setAllowCredentials(true);
